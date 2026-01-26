@@ -4,5 +4,10 @@
   "branch": "main",
   "me": "Chris0xdeadbeef",
   "journalStartDate": "2026-01-26T07:30:00.000Z",
-  "exceptions": []
+  "exceptions": [
+    {
+      "sha": "50007270c3531cc7e8371c0d216d099c5209878d",
+      "excluded": true
+    }
+  ]
 }
