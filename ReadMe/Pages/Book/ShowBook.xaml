@@ -27,8 +27,40 @@
             VerticalOptions="Center"
             Clicked="OnBackClicked"/>
         </Grid>
-        
-        
-        
+
+        <!-- contenu -->
+        <Grid Grid.Row="1">
+            <Grid InputTransparent="True">
+                <BoxView Color="Black"/>
+                <Image Source="bggk1.jfif" Aspect="AspectFill" Opacity="0.7"/>
+
+                <BoxView HeightRequest="200" VerticalOptions="Start">
+                    <BoxView.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FF000000" Offset="0.0" />
+                            <GradientStop Color="Transparent" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </BoxView.Background>
+                </BoxView>
+            </Grid>
+
+            <!-- layout principal -->
+            <Grid Padding="20" RowDefinitions="Auto,Auto,*" RowSpacing="20">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBackgroundTapped"/>
+                </Grid.GestureRecognizers>
+
+                <VerticalStackLayout>
+                    <Label Grid.Row="0"
+               Text="Choix deck"
+               FontSize="32"
+               FontAttributes="Bold"
+               HorizontalOptions="Center"
+               TextColor="#FFD700"
+               FontFamily="OrbitronBold"
+               HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
     </Grid>
 </ContentPage>

@@ -3,6 +3,7 @@ using ReadMe.Pages;
 using ReadMe.Pages.Book;
 using ReadMe.Pages.Play;
 using ReadMe.Pages.Tag;
+using CommunityToolkit.Maui;
 
 namespace ReadMe
 {
@@ -25,6 +26,7 @@ namespace ReadMe
             // Configuration de base de l'application
             builder
                 .UseMauiApp<App>() // Définit la classe App comme racine
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
