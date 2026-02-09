@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ReadMe.Controls.AnimatedEntry"
+             x:Name="This">
+    <!--
+        Layout principal : une pile verticale contenant :
+        1) L'Entry (champ de texte)
+        2) Le soulignement animé (BoxView)
+    -->
+    <VerticalStackLayout Spacing="0">
+
+        <!--
+            Entry principal :
+            - Lie son texte et son placeholder aux propriétés du contrôle
+            - Déclenche les animations OnFocused / OnUnfocused
+        -->
+        <Entry x:Name="InnerEntry"
+               Text="{Binding Text, Source={x:Reference This}}"
+               Placeholder="{Binding Placeholder, Source={x:Reference This}}"
+               TextColor="White"
+               BackgroundColor="Transparent"
+               FontSize="20"
+               PlaceholderColor="#AAAAAA"
+               Focused="OnFocused"
+               Unfocused="OnUnfocused"/>
+
+        <!--
+            Soulignement animé :
+            - Largeur modifiée par les animations dans le code-behind
+            - Couleur dorée (#FFD700)
+        -->
+        <BoxView x:Name="Underline"
+                 HeightRequest="2"
+                 BackgroundColor="#FFD700"
+                 WidthRequest="100"/>
+    </VerticalStackLayout>
+</ContentView>
