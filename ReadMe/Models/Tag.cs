@@ -4,7 +4,7 @@
     /// Représente un tag permettant de classifier les livres.
     /// Utilisé pour filtrer et organiser la bibliothèque.
     /// </summary>
-    internal class Tag
+    public class Tag
     {
         /// <summary>
         /// Identifiant unique du tag (GUID).

@@ -46,21 +46,63 @@
 
             <!-- layout principal -->
             <Grid Padding="20" RowDefinitions="Auto,Auto,*" RowSpacing="20">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnBackgroundTapped"/>
-                </Grid.GestureRecognizers>
-
                 <VerticalStackLayout>
                     <Label Grid.Row="0"
-               Text="Choix deck"
-               FontSize="32"
-               FontAttributes="Bold"
-               HorizontalOptions="Center"
-               TextColor="#FFD700"
-               FontFamily="OrbitronBold"
-               HorizontalTextAlignment="Center"/>
+                           Text="Choix livre"
+                           FontSize="32"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="#FFD700"
+                           FontFamily="OrbitronBold"
+                           HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
             </Grid>
+
+            <CollectionView Grid.Row="2"
+                ItemsSource="{Binding Books}"
+                SelectionMode="Single"
+                Margin="0,20,0,0">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="15"
+                               Margin="0,10"
+                               BackgroundColor="#1A1A1A"
+                               BorderColor="#FFD700"
+                               CornerRadius="12">
+
+                            <VerticalStackLayout Spacing="6">
+                                <!-- Titre -->
+                                <Label Text="{Binding Title}"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700" />
+
+                                <!-- Nombre de pages -->
+                                <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
+                                       FontSize="16"
+                                       TextColor="White" />
+
+                                <!-- Tags -->
+                                <FlexLayout Wrap="Wrap" Direction="Row" BindableLayout.ItemsSource="{Binding Tags}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Frame Padding="6,2"
+                                                   Margin="4"
+                                                   BackgroundColor="#333333"
+                                                   CornerRadius="8">
+                                                <Label Text="{Binding Name}"
+                                                       TextColor="#FFD700"
+                                                       FontSize="14"/>
+                                            </Frame>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </Grid>
     </Grid>
 </ContentPage>

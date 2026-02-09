@@ -5,7 +5,7 @@
     /// Contient les métadonnées, le contenu EPUB et les informations
     /// nécessaires à la gestion de la lecture.
     /// </summary>
-    internal class Book
+    public class Book
     {
         /// <summary>
         /// Identifiant unique du livre (GUID).

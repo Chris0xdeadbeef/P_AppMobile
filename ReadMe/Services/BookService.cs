@@ -7,13 +7,15 @@ namespace ReadMe.Services
     /// Service centralisé responsable de la gestion des livres.
     /// Il agit comme une source de vérité unique pour toute l'application.
     /// </summary>
-    internal class BookService
+    public class BookService
     {
         /// <summary>
         /// Liste observable contenant tous les livres de l'application.
         /// ObservableCollection permet une mise à jour automatique de l'UI.
         /// </summary>
         public ObservableCollection<Book> Books { get; private set; } = [];
+
+        public ObservableCollection<Book> GetAllBooks() => Books;
 
         /// <summary>
         /// Ajoute un nouveau livre à la collection globale.
