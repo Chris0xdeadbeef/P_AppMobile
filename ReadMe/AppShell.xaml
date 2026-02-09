@@ -3,13 +3,41 @@
     x:Class="ReadMe.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ReadMe"
+    xmlns:pages="clr-namespace:ReadMe.Pages"
+    xmlns:book="clr-namespace:ReadMe.Pages.Book"
+    xmlns:tag="clr-namespace:ReadMe.Pages.Tag"
+    xmlns:play="clr-namespace:ReadMe.Pages.Play"
     Shell.FlyoutBehavior="Disabled"
-    Title="ReadMe">
+    Shell.NavBarIsVisible="False">
+
+    <!-- pages du shell -->
+    <!-- /Pages -->
+    <ShellContent
+        Route="menu"
+        ContentTemplate="{DataTemplate pages:Menu}" />
+
+    <!-- /Pages/Book -->
+    <ShellContent
+        Route="addBook"
+        ContentTemplate="{DataTemplate book:AddBook}" />
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="showBook"
+        ContentTemplate="{DataTemplate book:ShowBook}" />
+
+    <!-- /Pages/Play -->
+    <ShellContent
+        Route="bookChoice"
+        ContentTemplate="{DataTemplate play:BookChoice}" />
+
+    <ShellContent
+        Route="bookPlay"
+        ContentTemplate="{DataTemplate play:BookPlay}" />
+
+    <!-- /Pages/Tag -->
+    <ShellContent
+        Route="addTag"
+        ContentTemplate="{DataTemplate tag:AddTag}" />
+
 
 </Shell>

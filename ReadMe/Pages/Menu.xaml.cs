@@ -1,13 +1,20 @@
 using Microsoft.Maui.Layouts;
+using ReadMe.Pages.Book;
+using ReadMe.Pages.Play;
 
 namespace ReadMe.Pages;
 
 public partial class Menu : ContentPage
 {
     private bool _starsCreated;
-    public Menu()
+    private readonly BookChoice _bookchoice;
+    private readonly ShowBook _showBook;
+
+    public Menu(BookChoice bookChoice, ShowBook showBook)
     {
         InitializeComponent();
+        _bookchoice = bookChoice;
+        _showBook = showBook;
 
         SizeChanged += OnSizeChanged;
     }
@@ -27,7 +34,7 @@ public partial class Menu : ContentPage
 
         for (byte i = 0; i < count; ++i)
         {
-            float size = 0.007f;
+            float size = 0.01f;
 
             BoxView star = new()
             {
@@ -74,13 +81,13 @@ public partial class Menu : ContentPage
         }
     }
 
-    private async void OnClickedGestionDeck(object sender, EventArgs e)
+    private async void OnClickedShowBook(object sender, EventArgs e)
     {
-        //await Navigation.PushAsync(_deckGestion);
+        await Navigation.PushAsync(_showBook);
     }
 
     private async void OnClickedPlay(object sender, EventArgs e)
     {
-       // await Navigation.PushAsync(_deckChoice);
+       await Navigation.PushAsync(_bookchoice);
     }
 }

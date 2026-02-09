@@ -20,7 +20,7 @@
             <Button
                 x:Name="DeckGestionBtn"
                 Text="Gérer les livres"
-                Clicked="OnClickedGestionDeck"
+                Clicked="OnClickedShowBook"
                 BackgroundColor="#2A2A2A"
                 TextColor="#FFD700"
                 FontSize="20"
