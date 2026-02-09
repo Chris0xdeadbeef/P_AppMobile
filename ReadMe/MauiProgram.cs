@@ -1,4 +1,8 @@
 ﻿using ReadMe.Services;
+using ReadMe.Pages;
+using ReadMe.Pages.Book;
+using ReadMe.Pages.Play;
+using ReadMe.Pages.Tag;
 
 namespace ReadMe
 {
@@ -35,6 +39,14 @@ namespace ReadMe
             builder.Services.AddSingleton<BookService>();
             builder.Services.AddSingleton<TagService>();
 
+            // --- Enregistrement des pages ---
+            // Transient = une nouvelle instance est créée à chaque navigation
+            builder.Services.AddTransient<Menu>();
+            builder.Services.AddTransient<AddBook>();
+            builder.Services.AddTransient<ShowBook>();
+            builder.Services.AddTransient<BookChoice>();
+            builder.Services.AddTransient<BookPlay>();
+            builder.Services.AddTransient<AddTag>();
 
             return builder.Build();
         }
