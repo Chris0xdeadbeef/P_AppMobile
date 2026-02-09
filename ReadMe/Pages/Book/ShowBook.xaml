@@ -34,14 +34,6 @@
                 <BoxView Color="Black"/>
                 <Image Source="bggk1.jfif" Aspect="AspectFill" Opacity="0.7"/>
 
-                <BoxView HeightRequest="200" VerticalOptions="Start">
-                    <BoxView.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#FF000000" Offset="0.0" />
-                            <GradientStop Color="Transparent" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </BoxView.Background>
-                </BoxView>
             </Grid>
 
             <!-- layout principal -->
@@ -55,6 +47,22 @@
                            TextColor="#FFD700"
                            FontFamily="OrbitronBold"
                            HorizontalTextAlignment="Center"/>
+
+                    <Button x:Name="DeckAddBtn"
+                            Text="+"
+                            Clicked="OnClickedAddBook"
+                            BackgroundColor="#2A2A2A"
+                            TextColor="#FFD700"
+                            FontSize="20"
+                            Margin="0,60,0,0"
+                            HeightRequest="50"
+                            WidthRequest="50"
+                            CornerRadius="80"
+                            BorderColor="#FFD700"
+                            BorderWidth="3"
+                            HorizontalOptions="Center"
+                            Opacity="0.8"/>
+                    
                 </VerticalStackLayout>
             </Grid>
 

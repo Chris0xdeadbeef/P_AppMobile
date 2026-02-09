@@ -1,4 +1,6 @@
-﻿namespace ReadMe
+﻿using ReadMe.Pages;
+
+namespace ReadMe
 {
     public partial class App : Application
     {
@@ -6,7 +8,8 @@
         {
             InitializeComponent();
 
-            MainPage = new AppShell();
+            MainPage = new NavigationPage(new Menu());
+
         }
     }
 }

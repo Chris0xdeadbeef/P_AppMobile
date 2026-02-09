@@ -4,7 +4,7 @@
              x:Class="ReadMe.Pages.Book.AddBook"
              Title="AddBook"
              NavigationPage.HasNavigationBar="False">
-    
+
     <Grid RowDefinitions="80,*">
 
         <!-- nav custom -->
@@ -13,20 +13,71 @@
             <Image Source="playnav.png" Aspect="AspectFit" HeightRequest="60" HorizontalOptions="End"/>
 
             <Label 
-        TextColor="#FFD700"
-        FontSize="24"
-        FontAttributes="Bold"
-        HorizontalOptions="Center"
-        VerticalOptions="Center"/>
+            TextColor="#FFD700"
+            FontSize="24"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"/>
 
             <ImageButton
-        Source="backarrow.png"
-        HeightRequest="80"
-        WidthRequest="80"
-        Margin="15,0"
-        HorizontalOptions="Start"
-        VerticalOptions="Center"
-        Clicked="OnBackClicked"/>
+            Source="backarrow.png"
+            HeightRequest="80"
+            WidthRequest="80"
+            Margin="15,0"
+            HorizontalOptions="Start"
+            VerticalOptions="Center"
+            Clicked="OnBackClicked"/>
+        </Grid>
+
+        <!-- contenu de la page -->
+        <Grid Grid.Row="1">
+
+            <BoxView Color="Black" InputTransparent="True"/>
+            <Image Source="card20.jpg" Aspect="AspectFill" Opacity="0.6" InputTransparent="True"/>
+
+            <StackLayout Padding="20" Spacing="20">
+                <Label Text="Importer un livre" 
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   Margin="0,30,0,80"
+                   TextColor="#FFD700"
+                   FontFamily="OrbitronBold"
+                   HorizontalTextAlignment="Center">
+                    <Label.Shadow>
+                        <Shadow Brush="#000000" Opacity="0.9" Offset="3,3" Radius="6"/>
+                    </Label.Shadow>
+                </Label>
+
+                <Button Text="Parcourir"
+                    Clicked="ImportBook"
+                    BackgroundColor="#3A0000"
+                    TextColor="#FFD700"
+                    FontSize="20"
+                    HeightRequest="60"
+                    CornerRadius="8"
+                    BorderColor="#FFD700"
+                    BorderWidth="2"
+                    Opacity="0.8"
+                    />
+
+                <Button Text="Créer le deck"
+                    Clicked="OnAddBookClicked"
+                    BackgroundColor="#3A0000"
+                    TextColor="#FFD700"
+                    FontSize="20"
+                    HeightRequest="60"
+                    CornerRadius="8"
+                    BorderColor="#FFD700"
+                    BorderWidth="2"
+                    Opacity="0.8"/>
+
+                <Image Source="bannerncr.png"
+                     Aspect="AspectFill"
+                     WidthRequest="120"
+                     Margin="-280,-170,20,20"
+                     ZIndex="0"/>
+            </StackLayout>
         </Grid>
     </Grid>
 </ContentPage>
