@@ -26,16 +26,8 @@ public partial class ShowBook : ContentPage
     /// </summary>
     private async void OnBackClicked(object sender, EventArgs e)
     {
-        if (Navigation.NavigationStack.Count > 1)
+        if (Navigation?.NavigationStack.Count > 1)
             await Navigation.PopAsync();
-    }
-
-    /// <summary>
-    /// Permet de fermer le clavier si on tape en dehors.
-    /// </summary>
-    private void OnBackgroundTapped(object sender, EventArgs e)
-    {
-        Focus(); // simple, efficace
     }
 
     /// <summary>

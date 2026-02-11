@@ -31,10 +31,6 @@ public partial class SplashScreen : ContentPage
 
         await Task.Delay(5000);
 
-        if (Application.Current is not null && _menu is not null)
-        {
-            Application.Current.MainPage = new NavigationPage(_menu);
-        }
+        Application.Current.MainPage = new NavigationPage(_menu);       
     }
-
 }

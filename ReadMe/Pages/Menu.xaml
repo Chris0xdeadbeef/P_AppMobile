@@ -8,15 +8,7 @@
 
     <Grid>
         <Image Source="menu.jpg" Aspect="Fill" Opacity="1"/>
-
-        <AbsoluteLayout
-            x:Name="StarsLayer"
-            InputTransparent="True"
-            HorizontalOptions="Fill"
-            VerticalOptions="Fill"
-            ZIndex="0"
-            Padding="40"/>
-
+        
         <VerticalStackLayout Padding="20" Spacing="20" HorizontalOptions="Center" VerticalOptions="Start">               
             <Label 
                 Text="ReadMe Menu"

@@ -9,30 +9,20 @@
         <!-- nav custom -->
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
-            <Image Source="playnav.png" Aspect="AspectFit" HeightRequest="60" HorizontalOptions="End"/>
-
-            <Label 
-            TextColor="#FFD700"
-            FontSize="24"
-            FontAttributes="Bold"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"/>
+            <Image
+                Source="candle.gif"
+                Aspect="AspectFit"
+                IsAnimationPlaying="True"
+                Margin="200,0,0,0"/>
 
             <ImageButton
-            Source="backarrow.png"
-            HeightRequest="80"
-            WidthRequest="80"
-            Margin="15,0"
-            HorizontalOptions="Start"
-            VerticalOptions="Center"
-            Clicked="OnBackClicked"/>
-
-            <Image
-            Source="candle.gif"
-            Aspect="AspectFit"
-            IsAnimationPlaying="True"
-            HeightRequest="200"
-            ZIndex="0" />
+                Source="backarrow.png"
+                HeightRequest="80"
+                WidthRequest="80"
+                Margin="15,0"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnBackClicked"/>            
         </Grid>
 
         <!-- contenu -->
