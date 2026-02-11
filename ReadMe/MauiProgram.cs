@@ -18,7 +18,7 @@ namespace ReadMe
         /// Point d'entrée principal pour construire l'application MAUI.
         /// Configure les polices, les services, les pages et les outils utilisés.
         /// </summary>
-        /// <returns>Une instance entièrement configurée de <see cref="MauiApp"/>.</returns>
+        /// <returns>Une instance entièrement configurée</returns>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();

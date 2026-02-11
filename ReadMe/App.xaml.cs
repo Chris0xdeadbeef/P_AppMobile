@@ -4,12 +4,11 @@ namespace ReadMe
 {
     public partial class App : Application
     {
-        public App()
+        public App(Menu menu)
         {
             InitializeComponent();
 
-            MainPage = new NavigationPage(new Menu());
-
+            MainPage = new SplashScreen(menu);
         }
     }
 }
