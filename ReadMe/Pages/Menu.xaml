@@ -1,12 +1,13 @@
 <ContentPage 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:media="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
     x:Class="ReadMe.Pages.Menu"
     Title="Menu"
     NavigationPage.HasNavigationBar="False">
 
     <Grid>
-        <Image Source="bgchateau.jfif" Aspect="Fill" Opacity="0.6"/>
+        <Image Source="menu.jpg" Aspect="Fill" Opacity="1"/>
 
         <AbsoluteLayout
             x:Name="StarsLayer"
@@ -16,67 +17,48 @@
             ZIndex="0"
             Padding="40"/>
 
-        <VerticalStackLayout Padding="20" Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
-            <Button
-                x:Name="DeckGestionBtn"
-                Text="Gérer les livres"
-                Clicked="OnClickedShowBook"
-                BackgroundColor="#2A2A2A"
-                TextColor="#FFD700"
-                FontSize="20"
-                HeightRequest="65"
-                WidthRequest="280"
-                CornerRadius="8"
-                BorderColor="#FFD700"
-                BorderWidth="3"
+        <VerticalStackLayout Padding="20" Spacing="20" HorizontalOptions="Center" VerticalOptions="Start">               
+            <Label 
+                Text="ReadMe Menu"
+                FontSize="32"
+                FontAttributes="Bold"
                 HorizontalOptions="Center"
-                Opacity="0.8">
-                <Button.Shadow>
-                    <Shadow Brush="#000000" Opacity="0.8" Offset="4,4" Radius="12"/>
-                </Button.Shadow>
-            </Button>
-
-            <Button
-                x:Name="PlayBtn"
-                Text="Lire"
-                Clicked="OnClickedPlay"
-                BackgroundColor="#3A0000"
+                VerticalOptions="Start"
+                Margin="0,70,0,0"
                 TextColor="#FFD700"
-                FontSize="20"
-                HeightRequest="65"
-                WidthRequest="280"
-                CornerRadius="8"
-                BorderColor="#FFD700"
-                BorderWidth="3"
-                HorizontalOptions="Center"
-                Opacity="0.8">
-                <Button.Shadow>
-                    <Shadow Brush="#000000" Opacity="0.8" Offset="4,4" Radius="12"/>
-                </Button.Shadow>
-            </Button>
-        </VerticalStackLayout>
-
-        <Image Source="banner.png"
-               Aspect="Fill"
-               WidthRequest="150"
-               Margin="370,20,20,20"
-               ZIndex="2"/>
-
-        <Label 
-            Text="ReadMe Menu"
-            FontSize="32"
-            FontAttributes="Bold"
-            HorizontalOptions="Center"
-            VerticalOptions="Start"
-            Margin="0,70,0,0"
-            TextColor="#FFD700"
-            FontFamily="OrbitronBold"
-            HorizontalTextAlignment="Center"
-            ZIndex="3">
-            <Label.Shadow>
-                <Shadow Brush="#000000" Opacity="0.9" Offset="3,3" Radius="6"/>
-            </Label.Shadow>
-        </Label>
-
+                FontFamily="OrbitronBold"
+                HorizontalTextAlignment="Center"
+                ZIndex="3">
+                <Label.Shadow>
+                    <Shadow Brush="#000000" Opacity="0.9" Offset="3,3" Radius="6"/>
+                </Label.Shadow>
+            </Label>
+            
+            <VerticalStackLayout>
+                <Image x:Name="EditImage"
+                       Source="stars.gif"
+                       Aspect="AspectFit"
+                       WidthRequest="100"
+                       Margin="220,10,0,230"
+                       Opacity="0.7"
+                       ZIndex="2"
+                       IsAnimationPlaying="True"
+                       Rotation="-60">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClickedShowBook"/>
+                    </Image.GestureRecognizers>
+                </Image>
+                
+                <Image x:Name="ServoImage"
+                       Source="servocrane.png"
+                       Aspect="AspectFit"
+                       WidthRequest="150"
+                       ZIndex="2">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnClickedPlay"/>
+                    </Image.GestureRecognizers>
+                </Image>       
+            </VerticalStackLayout>
+        </VerticalStackLayout> 
     </Grid>
 </ContentPage>

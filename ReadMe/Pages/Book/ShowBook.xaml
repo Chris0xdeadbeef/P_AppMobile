@@ -26,6 +26,13 @@
             HorizontalOptions="Start"
             VerticalOptions="Center"
             Clicked="OnBackClicked"/>
+
+            <Image
+            Source="candle.gif"
+            Aspect="AspectFit"
+            IsAnimationPlaying="True"
+            HeightRequest="200"
+            ZIndex="0" />
         </Grid>
 
         <!-- contenu -->
