@@ -2,9 +2,11 @@ namespace ReadMe.Pages.Play;
 
 public partial class BookPlay : ContentPage
 {
-	public BookPlay()
+    private readonly Models.Book _book;
+	public BookPlay(Models.Book Book)
 	{
 		InitializeComponent();
+        _book = Book;
 	}
 
     /// <summary>

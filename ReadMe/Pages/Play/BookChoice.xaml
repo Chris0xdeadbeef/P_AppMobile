@@ -1,25 +1,121 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ReadMe.Pages.Play.BookChoice"
-             Title="BookChoice"
-             NavigationPage.HasNavigationBar="False">
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="ReadMe.Pages.Play.BookChoice"
+    NavigationPage.HasNavigationBar="False">
 
     <Grid RowDefinitions="80,*">
 
-        <!-- nav custom -->
+        <!-- NAVIGATION -->
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
-            <Image Source="playnav.png" Aspect="AspectFit" HeightRequest="60" HorizontalOptions="End"/>
+
+            <Image Source="playnav.png"
+                   Aspect="AspectFit"
+                   HeightRequest="60"
+                   HorizontalOptions="End"/>
 
             <ImageButton
-        Source="backarrow.png"
-        HeightRequest="80"
-        WidthRequest="80"
-        Margin="15,0"
-        HorizontalOptions="Start"
-        VerticalOptions="Center"
-        Clicked="OnBackClicked"/>
+                Source="backarrow.png"
+                HeightRequest="80"
+                WidthRequest="80"
+                Margin="15,0"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnBackClicked"/>
+        </Grid>
+
+        <!-- CONTENU -->
+        <Grid Grid.Row="1">
+
+            <!-- Background -->
+            <BoxView Color="Black" InputTransparent="True"/>
+            <Image Source="edit.jpg"
+                   Aspect="AspectFill"
+                   Opacity="0.7"
+                   InputTransparent="True"/>
+
+            <!-- Dégradé haut -->
+            <BoxView HeightRequest="100"
+                     VerticalOptions="Start"
+                     InputTransparent="True">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF000000" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+            <!-- Layout principal -->
+            <Grid Padding="20"
+                  RowDefinitions="Auto,*"
+                  RowSpacing="10">
+
+                <!-- Titre -->
+                <Label Grid.Row="0"
+                       Text="Sélection du Manuscrit"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="#FFD700"
+                       FontFamily="OrbitronBold"
+                       HorizontalTextAlignment="Center"/>
+
+                <!-- Liste -->
+                <CollectionView Grid.Row="1"
+                ItemsSource="{Binding Books}"
+                SelectionMode="None"
+                Margin="0,20,0,0">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="15"
+                   Margin="0,10"
+                   BackgroundColor="#1A1A1A"
+                   BorderColor="#FFD700"
+                   CornerRadius="12">
+
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnBookTapped"
+                                          CommandParameter="{Binding}" />
+                                </Frame.GestureRecognizers>
+
+                                <VerticalStackLayout Spacing="6">
+
+                                    <Label Text="{Binding Title}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#FFD700" />
+
+                                    <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
+                           FontSize="16"
+                           TextColor="White" />
+
+                                    <FlexLayout Wrap="Wrap"
+                                Direction="Row"
+                                BindableLayout.ItemsSource="{Binding Tags}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Frame Padding="6,2"
+                                       Margin="4"
+                                       BackgroundColor="#333333"
+                                       CornerRadius="8">
+                                                    <Label Text="{Binding Name}"
+                                           TextColor="#FFD700"
+                                           FontSize="14"/>
+                                                </Frame>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+
+                                </VerticalStackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>
