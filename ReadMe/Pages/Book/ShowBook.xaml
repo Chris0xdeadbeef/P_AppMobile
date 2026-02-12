@@ -11,11 +11,16 @@
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
 
+            <Image Source="banner1.png"
+                    Aspect="AspectFit"
+                    HeightRequest="100"
+                    Margin="30,0,0,0"/>
+
             <Image Source="candle.gif"
                    Aspect="AspectFit"
                    HeightRequest="80"
                    IsAnimationPlaying="True"
-                   Margin="200,0,0,0"/>
+                   HorizontalOptions="End"/>
 
             <Label 
                 TextColor="#FFD700"
@@ -63,7 +68,7 @@
 
                 <!-- Titre -->
                 <Label Grid.Row="0"
-                       Text="Choix livre"
+                       Text="Rituel de Consultation des Tomes"
                        FontSize="32"
                        FontAttributes="Bold"
                        HorizontalOptions="Center"

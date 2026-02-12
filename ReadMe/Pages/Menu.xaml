@@ -29,7 +29,7 @@
             <!-- Titre -->
             <Label 
                 Grid.Row="0"
-                Text="ReadMe Menu"
+                Text="Sanctum des Fonctions Sacrées"
                 FontSize="32"
                 FontAttributes="Bold"
                 HorizontalOptions="Center"
