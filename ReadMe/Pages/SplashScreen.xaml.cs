@@ -29,8 +29,10 @@ public partial class SplashScreen : ContentPage
     {
         base.OnAppearing();
 
-        await Task.Delay(5000);
-
-        Application.Current.MainPage = new NavigationPage(_menu);       
+        await Task.Delay(3000).ContinueWith(t => {
+            MainThread.InvokeOnMainThreadAsync(() => {
+                Application.Current.MainPage = new NavigationPage(_menu);
+            });
+        });
     }
 }
