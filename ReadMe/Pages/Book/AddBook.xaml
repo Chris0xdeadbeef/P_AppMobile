@@ -26,7 +26,7 @@
             <BoxView Color="Black" InputTransparent="True"/>
             <Image Source="card20.jpg" Aspect="AspectFill" Opacity="0.6" InputTransparent="True"/>
 
-            <!-- Dégradé haut -->
+            <!-- Degrade haut -->
             <BoxView HeightRequest="100"
                      VerticalOptions="Start"
                      InputTransparent="True">
@@ -39,7 +39,7 @@
             </BoxView>
 
             <StackLayout Padding="20" Spacing="20">
-                <Label Text="Station d’Importation des Tomes" 
+                <Label Text="Station Importation des Tomes" 
                    FontSize="32"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
@@ -66,7 +66,7 @@
                     Opacity="0.8"
                     />
 
-                <Button Text="Encoder dans la Mémoire Sacrée"
+                <Button Text="Encoder dans la Memoire Sacree"
                     Clicked="OnAddBookClicked"
                     BackgroundColor="#3A0000"                    
                     TextColor="#FFD700"

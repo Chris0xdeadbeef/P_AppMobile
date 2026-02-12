@@ -1,4 +1,6 @@
-﻿namespace ReadMe.Models
+﻿using System.Collections.ObjectModel;
+
+namespace ReadMe.Models
 {
     /// <summary>
     /// Représente un livre stocké dans l'application ReadME.
@@ -50,6 +52,7 @@
         /// Permet la reprise automatique de la lecture.
         /// </summary>
         private int _lastPageRead;
+        public int PageCount { get; set; }
 
         public int LastPageRead
         {
@@ -61,7 +64,7 @@
         /// Liste des tags associés au livre.
         /// Permet le filtrage et la classification.
         /// </summary>
-        public List<Tag> Tags { get; set; } = [];
+        public ObservableCollection<Tag> Tags { get; set; } = [];
 
         /// <summary>
         /// Constructeur principal permettant d'initialiser un livre
@@ -74,6 +77,7 @@
             Author = author;
             EpubContent = epubContent;
             CoverImage = coverImage;
+
 
             DateAdded = DateTime.UtcNow;
             InsertionDate = DateAdded;

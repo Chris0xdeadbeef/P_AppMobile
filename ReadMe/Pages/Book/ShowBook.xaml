@@ -49,7 +49,7 @@
                    Opacity="0.7"
                    InputTransparent="True"/>
 
-            <!-- Dégradé haut -->
+            <!-- Degrade haut -->
             <BoxView HeightRequest="100"
                      VerticalOptions="Start"
                      InputTransparent="True">
@@ -76,7 +76,7 @@
                        FontFamily="OrbitronBold"
                        HorizontalTextAlignment="Center"/>
 
-                <!-- Bouton + -->
+                <!-- Bouton  -->
                 <Button Grid.Row="1"
                         x:Name="DeckAddBtn"
                         Text="+"

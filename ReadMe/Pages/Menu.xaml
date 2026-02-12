@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -29,7 +30,7 @@
             <!-- Titre -->
             <Label 
                 Grid.Row="0"
-                Text="Sanctum des Fonctions Sacrées"
+                Text="Sanctum des Fonctions Sacrees"
                 FontSize="32"
                 FontAttributes="Bold"
                 HorizontalOptions="Center"

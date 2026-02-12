@@ -1,4 +1,5 @@
 using ReadMe.Services;
+using VersOne.Epub;
 
 namespace ReadMe.Pages.Book;
 
@@ -32,26 +33,33 @@ public partial class AddBook : ContentPage
             {
                 PickerTitle = "Sélectionner un fichier EPUB",
                 FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                {
-                    { DevicePlatform.Android, new[] { "application/epub+zip", ".epub" } },
-                    { DevicePlatform.iOS, new[] { "org.idpf.epub-container", ".epub" } },
-                    { DevicePlatform.WinUI, new[] { ".epub" } }
-                })
+            {
+                { DevicePlatform.Android, new[] { "application/epub+zip", ".epub" } },
+                { DevicePlatform.iOS, new[] { "org.idpf.epub-container", ".epub" } },
+                { DevicePlatform.WinUI, new[] { ".epub" } }
+            })
             });
 
             if (result == null)
                 return;
 
-            // Lecture du fichier EPUB
+            // Lecture du fichier EPUB en bytes
             using var stream = await result.OpenReadAsync();
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             var epubBytes = ms.ToArray();
 
-            // Extraction des métadonnées
+            // Lecture de l'EPUB via un MemoryStream
+            using var epubStream = new MemoryStream(epubBytes);
+            EpubBook epubBook = EpubReader.ReadBook(epubStream);
+
+            // Nombre de "pages" = nombre de sections
+            int pageCount = epubBook.ReadingOrder.Count;
+
+            // Extraction des métadonnées (pour l'instant basique)
             var (title, author, coverBytes) = await ExtractEpubMetadata(epubBytes, result.FileName);
 
-            // Création du livre mais PAS encore ajouté
+            // Création du livre
             _importedBook = new Models.Book(
                 title: title,
                 author: author,
@@ -59,7 +67,14 @@ public partial class AddBook : ContentPage
                 coverImage: coverBytes
             );
 
-            await DisplayAlert("Import réussi", "Le livre a été importé. Cliquez sur 'Créer le deck' pour l'ajouter.", "OK");
+            // On remplit PageCount
+            _importedBook.PageCount = pageCount;
+
+            await DisplayAlert(
+                "Import réussi",
+                "Le manuscrit a été importé. Maintenant il faut l'encoder dans la Mémoire Sacrée.",
+                "OK"
+            );
         }
         catch (Exception ex)
         {
@@ -74,12 +89,22 @@ public partial class AddBook : ContentPage
     {
         if (_importedBook == null)
         {
-            await DisplayAlert("Erreur", "Aucun livre importé. Cliquez d'abord sur 'Parcourir'.", "OK");
+            await DisplayAlert(
+                    "Anomalie du Cogitator",
+                    "Aucun manuscrit n'a été détecté. Initiez d'abord le Rite d'Acquisition.",
+                    "Ave Omnissiah"
+                );
+
             return;
         }
 
         _bookService.AddDeck(_importedBook);
-        await DisplayAlert("Succès", "Le livre a été ajouté à votre bibliothèque.", "OK");
+        await DisplayAlert(
+                "Rituel Accompli",
+                "Le manuscrit a été sanctifié et inscrit dans la Mémoire Sacrée.",
+                "Gloire au Machine-Esprit"
+            );
+
 
         // Optionnel : reset
         _importedBook = null;

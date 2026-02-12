@@ -12,7 +12,7 @@ public partial class ShowBook : ContentPage
         InitializeComponent();
 
         _bookService = bookService;
-        _addBook = addBook;        
+        _addBook = addBook;
 
         // Définit la source de données pour la CollectionView
         BindingContext = new
