@@ -7,7 +7,6 @@ public partial class Menu : ContentPage
 {
     private readonly BookChoice _bookchoice;
     private readonly ShowBook _showBook;
-    private bool _isAnimating = false;
 
     public Menu(BookChoice bookChoice, ShowBook showBook)
     {
@@ -19,7 +18,6 @@ public partial class Menu : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _isAnimating = true;
         AnimateServo();
     }
 
@@ -46,7 +44,6 @@ public partial class Menu : ContentPage
             repeat: () => true
         );
     }
-
 
     protected override void OnDisappearing()
     {
