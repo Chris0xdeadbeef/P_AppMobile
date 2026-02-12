@@ -7,27 +7,51 @@ public partial class Menu : ContentPage
 {
     private readonly BookChoice _bookchoice;
     private readonly ShowBook _showBook;
+    private bool _isAnimating = false;
 
     public Menu(BookChoice bookChoice, ShowBook showBook)
     {
         InitializeComponent();
         _bookchoice = bookChoice;
-        _showBook = showBook;
+        _showBook = showBook;  
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _isAnimating = true;
         AnimateServo();
     }
 
-    private async void AnimateServo()
+    private void AnimateServo()
     {
-        while (true)
+        // Animation personnalisée
+        var animation = new Animation();
+
+        animation.Add(0, 0.5, new Animation(v =>
         {
-            await ServoImage.ScaleTo(1.1, 600, Easing.SinInOut);
-            await ServoImage.ScaleTo(1.0, 600, Easing.SinInOut);
-        }
+            ServoImage.Scale = v;
+        }, 1.0, 1.1, Easing.SinInOut));
+
+        animation.Add(0.5, 1.0, new Animation(v =>
+        {
+            ServoImage.Scale = v;
+        }, 1.1, 1.0, Easing.SinInOut));
+
+        // Lancer l’animation en boucle
+        animation.Commit(
+            owner: this,
+            name: "servoPulse",
+            length: 1200,
+            repeat: () => true
+        );
+    }
+
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        ServoImage.AbortAnimation("servoPulse");
     }
 
     private async void OnClickedShowBook(object sender, EventArgs e)

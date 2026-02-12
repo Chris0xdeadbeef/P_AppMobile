@@ -26,8 +26,7 @@ public partial class ShowBook : ContentPage
     /// </summary>
     private async void OnBackClicked(object sender, EventArgs e)
     {
-        if (Navigation?.NavigationStack.Count > 1)
-            await Navigation.PopAsync();
+        await Navigation.PopToRootAsync();
     }
 
     /// <summary>

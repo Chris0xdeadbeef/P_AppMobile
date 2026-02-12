@@ -1,21 +1,38 @@
 <ContentPage 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:media="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
     x:Class="ReadMe.Pages.Menu"
-    Title="Menu"
     NavigationPage.HasNavigationBar="False">
 
     <Grid>
         <Image Source="menu.jpg" Aspect="Fill" Opacity="1"/>
-        
-        <VerticalStackLayout Padding="20" Spacing="20" HorizontalOptions="Center" VerticalOptions="Start">               
+        <Image x:Name="EditImage"
+               Source="stars.gif"
+               Aspect="AspectFit"
+               WidthRequest="100"
+               Margin="220,10,0,230"
+               Opacity="0.7"
+               ZIndex="2"
+               IsAnimationPlaying="True"
+               Rotation="-60">
+            <Image.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnClickedShowBook"/>
+            </Image.GestureRecognizers>
+        </Image>
+
+        <!-- Layout principal -->
+        <Grid RowDefinitions="Auto, Auto, *"
+              Padding="20"
+              HorizontalOptions="Center"
+              VerticalOptions="Start">
+
+            <!-- Titre -->
             <Label 
+                Grid.Row="0"
                 Text="ReadMe Menu"
                 FontSize="32"
                 FontAttributes="Bold"
                 HorizontalOptions="Center"
-                VerticalOptions="Start"
                 Margin="0,70,0,0"
                 TextColor="#FFD700"
                 FontFamily="OrbitronBold"
@@ -25,32 +42,26 @@
                     <Shadow Brush="#000000" Opacity="0.9" Offset="3,3" Radius="6"/>
                 </Label.Shadow>
             </Label>
-            
-            <VerticalStackLayout>
-                <Image x:Name="EditImage"
-                       Source="stars.gif"
-                       Aspect="AspectFit"
-                       WidthRequest="100"
-                       Margin="220,10,0,230"
-                       Opacity="0.7"
-                       ZIndex="2"
-                       IsAnimationPlaying="True"
-                       Rotation="-60">
-                    <Image.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnClickedShowBook"/>
-                    </Image.GestureRecognizers>
-                </Image>
-                
+
+            <!-- Servo image -->
+            <Grid Grid.Row="1"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Start">
+
                 <Image x:Name="ServoImage"
                        Source="servocrane.png"
                        Aspect="AspectFit"
                        WidthRequest="150"
+                       Margin="0,340,0,0"
                        ZIndex="2">
                     <Image.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnClickedPlay"/>
                     </Image.GestureRecognizers>
-                </Image>       
-            </VerticalStackLayout>
-        </VerticalStackLayout> 
+                </Image>
+
+            </Grid>
+
+        </Grid>
+
     </Grid>
 </ContentPage>
