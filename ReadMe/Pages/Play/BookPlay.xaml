@@ -21,17 +21,66 @@
                 HorizontalOptions="Start"
                 VerticalOptions="Center"
                 Clicked="OnBackClicked"/>
+
+            <!-- Progress bar fantasy -->
+            <Grid HeightRequest="48"
+                      WidthRequest="200"
+                      HorizontalOptions="End">
+
+                <!-- Viewport = zone visible -->
+                <Grid x:Name="ProgressViewport"
+                          Margin="23,0,0,0"
+                          WidthRequest="250"
+                          HeightRequest="23"
+                          IsClippedToBounds="True"
+                          HorizontalOptions="Start"
+                          AnchorX="0">
+
+                    <!-- Bande animée -->
+                    <Grid x:Name="FillBand"
+                              WidthRequest="750"
+                              HeightRequest="23">
+
+                        <Image Source="progress_fill.png"
+                                   WidthRequest="250"
+                                   HeightRequest="23"
+                                   Aspect="AspectFit"/>
+
+                        <Image Source="progress_fill.png"
+                                   WidthRequest="250"
+                                   HeightRequest="23"
+                                   Aspect="AspectFit"
+                                   TranslationX="250"/>
+
+                        <Image Source="progress_fill.png"
+                                   WidthRequest="250"
+                                   HeightRequest="23"
+                                   Aspect="AspectFit"
+                                   TranslationX="500"/>
+                    </Grid>
+                </Grid>
+
+                <!-- Cadre -->
+                <Image Source="progress_empty.png"
+                           Aspect="Fill"/>
+            </Grid>
         </Grid>
 
         <!-- PAGE DE LECTURE -->
         <Grid Grid.Row="1" x:Name="PageContainer"
               BackgroundColor="Black"
               Padding="20">
+            <Image Source="bgpages.jpg"
+                   Aspect="AspectFill"
+                   Opacity="1"
+                   InputTransparent="True"
+                    Opacity="0.6"/>
 
             <!-- Contenu affiché -->
             <ContentView x:Name="PageContent"
                          HorizontalOptions="Fill"
-                         VerticalOptions="Fill">
+                         VerticalOptions="Fill"
+                         Opacity="0.6">
             </ContentView>
 
             <!-- Gestures -->

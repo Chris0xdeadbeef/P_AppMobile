@@ -10,80 +10,87 @@
         <!-- nav custom -->
         <Grid Grid.Row="0" Padding="0,20,0,0" BackgroundColor="Black">
             <BoxView Color="Black" />
-            <Image Source="banner2.png" Aspect="AspectFit" HeightRequest="160" HorizontalOptions="Center"/>
+            <Image Source="banner2.png"
+                   Aspect="AspectFit"
+                   HeightRequest="160"
+                   HorizontalOptions="Center" />
             <ImageButton
-            Source="backarrow.png"
-            HeightRequest="80"
-            WidthRequest="80"
-            Margin="50,0,0,30"
-            HorizontalOptions="Start"
-            VerticalOptions="Center"
-            Clicked="OnBackClicked"/>
+                Source="backarrow.png"
+                HeightRequest="80"
+                WidthRequest="80"
+                Margin="50,0,0,30"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnBackClicked" />
         </Grid>
 
         <!-- contenu de la page -->
-        <Grid Grid.Row="1">            
-            <BoxView Color="Black" InputTransparent="True"/>
-            <Image Source="card20.jpg" Aspect="AspectFill" Opacity="0.6" InputTransparent="True"/>
-
-            <!-- Degrade haut -->
-            <BoxView HeightRequest="100"
-                     VerticalOptions="Start"
-                     InputTransparent="True">
-                <BoxView.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#FF000000" Offset="0.0" />
-                        <GradientStop Color="#00000000" Offset="1.0" />
-                    </LinearGradientBrush>
-                </BoxView.Background>
-            </BoxView>
+        <Grid Grid.Row="1">
+            <BoxView Color="Black" InputTransparent="True" />
+            <Image Source="ajout.jpg"
+                   Aspect="AspectFill"
+                   Opacity="1"
+                   InputTransparent="True" />
 
             <StackLayout Padding="20" Spacing="20">
-                <Label Text="Station Importation des Tomes" 
-                   FontSize="32"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   Margin="0,30,0,80"
-                   TextColor="#FFD700"
-                   FontFamily="OrbitronBold"
-                   HorizontalTextAlignment="Center">
+                <Label Text="Station Importation des Tomes"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       Margin="0,30,0,80"
+                       TextColor="#FFD700"
+                       FontFamily="OrbitronBold"
+                       HorizontalTextAlignment="Center">
                     <Label.Shadow>
-                        <Shadow Brush="#000000" Opacity="0.9" Offset="3,3" Radius="6"/>
+                        <Shadow Brush="#000000"
+                                Opacity="0.9"
+                                Offset="3,3"
+                                Radius="6" />
                     </Label.Shadow>
                 </Label>
 
-                <Button Text="Activer le Cogitator de Recherche"
-                    Clicked="ImportBook"
-                    BackgroundColor="#3A0000"      
-                    TextColor="#FFD700"
-                    FontSize="20"                                          
-                    LineBreakMode="WordWrap"
-                    HeightRequest="60"
-                    CornerRadius="8"
-                    BorderColor="#FFD700"
-                    BorderWidth="2"
-                    Padding="100,0,25,0"
-                    Opacity="0.8"
-                    />
+                <Button x:Name="BtnImport"
+                        Text="Activer le Cogitator de Recherche"
+                        Clicked="ImportBook"
+                        BackgroundColor="#3A0000"
+                        TextColor="#FFD700"
+                        FontSize="20"
+                        LineBreakMode="WordWrap"
+                        HeightRequest="60"
+                        CornerRadius="8"
+                        BorderColor="#FFD700"
+                        BorderWidth="2"
+                        Padding="100,0,25,0"
+                        Opacity="0.8"
+                        TranslationX="-220"/>
 
-                <Button Text="Encoder dans la Memoire Sacree"
-                    Clicked="OnAddBookClicked"
-                    BackgroundColor="#3A0000"                    
-                    TextColor="#FFD700"
-                    LineBreakMode="WordWrap"
-                    FontSize="20"
-                    HeightRequest="60"
-                    CornerRadius="8"
-                    BorderColor="#FFD700"
-                    BorderWidth="2"
-                    Padding="90,0,0,0"
-                    Opacity="0.8"/>
+                <Button x:Name="BtnAdd"
+                        Text="Encoder dans la Memoire Sacree"
+                        Clicked="OnAddBookClicked"
+                        BackgroundColor="#3A0000"
+                        TextColor="#FFD700"
+                        LineBreakMode="WordWrap"
+                        FontSize="20"
+                        HeightRequest="60"
+                        CornerRadius="8"
+                        BorderColor="#FFD700"
+                        BorderWidth="2"
+                        Padding="90,0,0,0"
+                        Opacity="0.8"
+                        TranslationX="-220"/>
 
-                <Image Source="border1.jpg"
-                     Aspect="AspectFit"
-                     WidthRequest="120"
-                     Margin="-245,-220,0,0"
-                     ZIndex="0"/>
+                <!-- Image cliquable -->
+                <Image x:Name="BorderImage"
+                       Source="border1.jpg"
+                       Aspect="AspectFit"
+                       WidthRequest="120"
+                       Margin="-245,-220,0,0"
+                       ZIndex="0">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnBorderTapped" />
+                    </Image.GestureRecognizers>
+                </Image>
+
             </StackLayout>
         </Grid>
     </Grid>

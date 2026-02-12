@@ -9,6 +9,7 @@ public partial class AddBook : ContentPage
 
     // Livre temporaire importé mais pas encore ajouté
     private Models.Book? _importedBook;
+    private bool _menuVisible = false;
 
     public AddBook(BookService bookService)
     {
@@ -121,4 +122,27 @@ public partial class AddBook : ContentPage
 
         return Task.FromResult((title, author, cover));
     }
+
+    private async void OnBorderTapped(object sender, EventArgs e)
+    {
+        const uint animationSpeed = 250;
+
+        if (_menuVisible)
+        {
+            await Task.WhenAll(
+                BtnImport.TranslateTo(-220, 0, animationSpeed, Easing.SinInOut),
+                BtnAdd.TranslateTo(-220, 0, animationSpeed, Easing.SinInOut)
+            );
+        }
+        else
+        {
+            await Task.WhenAll(
+                BtnImport.TranslateTo(0, 0, animationSpeed, Easing.SinInOut),
+                BtnAdd.TranslateTo(0, 0, animationSpeed, Easing.SinInOut)
+            );
+        }
+
+        _menuVisible = !_menuVisible;
+    }
+
 }

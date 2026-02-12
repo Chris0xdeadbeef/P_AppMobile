@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text;
+using System.Text.RegularExpressions;
 using VersOne.Epub;
 
 namespace ReadMe.Pages.Play;
@@ -7,7 +9,7 @@ public partial class BookPlay : ContentPage
 {
     private readonly Models.Book _book;
 
-    private List<string> _pages = new();
+    private List<string> _pages = [];
     private int _currentPage = 0;
 
     public BookPlay(Models.Book book)
@@ -18,48 +20,59 @@ public partial class BookPlay : ContentPage
         LoadBook();
         DisplayPage(0);
     }
+
     private string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html))
             return "";
 
-        // Supprime les balises HTML
         string text = Regex.Replace(html, "<.*?>", string.Empty);
-
-        // Remplace les entités HTML (&nbsp; etc.)
         text = System.Net.WebUtility.HtmlDecode(text);
-
-        // Nettoyage final
         return text.Trim();
     }
 
+    private List<string> PaginateText(string fullText)
+    {
+        const int charsPerPage = 1200; // Ajuste si besoin
+
+        List<string> pages = new();
+        int index = 0;
+
+        while (index < fullText.Length)
+        {
+            int length = Math.Min(charsPerPage, fullText.Length - index);
+            pages.Add(fullText.Substring(index, length));
+            index += length;
+        }
+
+        return pages;
+    }
 
     private void LoadBook()
     {
         using var ms = new MemoryStream(_book.EpubContent);
         var epub = EpubReader.ReadBook(ms);
 
-        // Page 0 = couverture
-        _pages.Add("[COVER]");
+        var fullText = new StringBuilder();
 
-        // Récupérer le texte propre
-        string fullText = string.Join("\n\n",
-            epub.ReadingOrder
-                .Select(c => StripHtml(c.Content)) // Nettoyage HTML → texte
-                .Where(t => !string.IsNullOrWhiteSpace(t))
-        );
-
-        // Découper en pages
-        const int pageSize = 1500;
-        for (int i = 0; i < fullText.Length; i += pageSize)
+        foreach (var htmlFile in epub.ReadingOrder)
         {
-            int length = Math.Min(pageSize, fullText.Length - i);
-            _pages.Add(fullText.Substring(i, length));
+            if (htmlFile?.Content == null)
+                continue;
+
+            string html = htmlFile.Content;
+            string text = StripHtml(html);
+
+            if (!string.IsNullOrWhiteSpace(text))
+                fullText.AppendLine(text);
         }
+
+        var textPages = PaginateText(fullText.ToString());
+
+        _pages = new List<string>();
+        _pages.Add("[COVER]");      // page 0 = couverture
+        _pages.AddRange(textPages); // pages 1..N = texte
     }
-
-
-
 
     private void DisplayPage(int index)
     {
@@ -80,16 +93,55 @@ public partial class BookPlay : ContentPage
         }
         else
         {
-            PageContent.Content = new ScrollView
-            {
-                Content = new Label
-                {
-                    Text = _pages[index],
-                    TextColor = Colors.White,
-                    FontSize = 20
-                }
-            };
+            var webView = new WebView();
+
+            string htmlTemplate = @"
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-size: 18px;
+            padding: 20px;
+            line-height: 1.6;
         }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    {CONTENT}
+</body>
+</html>";
+
+            string finalHtml = htmlTemplate.Replace("{CONTENT}", _pages[index]);
+
+            webView.Source = new HtmlWebViewSource
+            {
+                Html = finalHtml
+            };
+
+            PageContent.Content = webView;
+        }
+
+        UpdateProgress();
+    }
+
+    private void UpdateProgress()
+    {
+        if (_pages.Count == 0)
+            return;
+
+        double ratio = (double)(_currentPage + 1) / _pages.Count;
+
+        // Même correction visuelle que CardPlay
+        double correctedRatio = ratio * ((250.0 - 110.0) / 250.0);
+
+        ProgressViewport.ScaleX = correctedRatio;
     }
 
     private async Task AnimatePageTurn(bool forward)
@@ -123,5 +175,36 @@ public partial class BookPlay : ContentPage
     private async void OnBackClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
+    }
+
+    // --- Animation de la bande de fond (comme CardPlay) ---
+
+    private async void AnimateFill()
+    {
+        double speed = 80;
+        double tileWidth = 250;
+        double position = 0;
+
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        while (true)
+        {
+            double dt = stopwatch.Elapsed.TotalSeconds;
+            stopwatch.Restart();
+
+            position += speed * dt;
+            position %= tileWidth;
+
+            FillBand.TranslationX = -position;
+
+            await Task.Delay(16);
+        }
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        AnimateFill();
     }
 }
