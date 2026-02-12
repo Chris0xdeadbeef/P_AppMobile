@@ -22,7 +22,7 @@ public partial class ShowBook : ContentPage
     }
 
     /// <summary>
-    /// Retourne à la page précédente si possible.
+    /// Retourne à la page menu
     /// </summary>
     private async void OnBackClicked(object sender, EventArgs e)
     {

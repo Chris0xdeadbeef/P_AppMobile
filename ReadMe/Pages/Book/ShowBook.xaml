@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ReadMe.Pages.Book.ShowBook"
-             NavigationPage.HasNavigationBar="False">
+<ContentPage 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="ReadMe.Pages.Book.ShowBook"
+    NavigationPage.HasNavigationBar="False">
 
     <Grid RowDefinitions="80,*">
 
-        <!-- nav custom -->
+        <!-- NAVIGATION -->
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
-            <Image
-                Source="candle.gif"
-                Aspect="AspectFit"
-                IsAnimationPlaying="True"
-                Margin="200,0,0,0"/>
+
+            <Image Source="candle.gif"
+                   Aspect="AspectFit"
+                   HeightRequest="80"
+                   IsAnimationPlaying="True"
+                   Margin="200,0,0,0"/>
+
+            <Label 
+                TextColor="#FFD700"
+                FontSize="24"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"/>
 
             <ImageButton
                 Source="backarrow.png"
@@ -22,92 +31,112 @@
                 Margin="15,0"
                 HorizontalOptions="Start"
                 VerticalOptions="Center"
-                Clicked="OnBackClicked"/>            
+                Clicked="OnBackClicked"/>
         </Grid>
 
-        <!-- contenu -->
+        <!-- CONTENU -->
         <Grid Grid.Row="1">
-            <Grid InputTransparent="True">
-                <BoxView Color="Black"/>
-                <Image Source="bggk1.jfif" Aspect="AspectFill" Opacity="0.7"/>
+
+            <!-- Background -->
+            <BoxView Color="Black" InputTransparent="True"/>
+            <Image Source="edit.jpg"
+                   Aspect="AspectFill"
+                   Opacity="0.7"
+                   InputTransparent="True"/>
+
+            <!-- Dégradé haut -->
+            <BoxView HeightRequest="100"
+                     VerticalOptions="Start"
+                     InputTransparent="True">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF000000" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+            <!-- Layout principal -->
+            <Grid Padding="20"
+                  RowDefinitions="Auto,Auto,*"
+                  RowSpacing="10">
+
+                <!-- Titre -->
+                <Label Grid.Row="0"
+                       Text="Choix livre"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="#FFD700"
+                       FontFamily="OrbitronBold"
+                       HorizontalTextAlignment="Center"/>
+
+                <!-- Bouton + -->
+                <Button Grid.Row="1"
+                        x:Name="DeckAddBtn"
+                        Text="+"
+                        Clicked="OnClickedAddBook"
+                        BackgroundColor="#2A2A2A"
+                        TextColor="#FFD700"
+                        FontSize="20"
+                        Margin="0,20,0,0"
+                        HeightRequest="50"
+                        WidthRequest="50"
+                        CornerRadius="80"
+                        BorderColor="#FFD700"
+                        BorderWidth="3"
+                        HorizontalOptions="Center"
+                        Opacity="0.8"/>
+
+                <!-- Liste -->
+                <CollectionView Grid.Row="2"
+                                ItemsSource="{Binding Books}"
+                                SelectionMode="Single"
+                                Margin="0,20,0,0">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="15"
+                                   Margin="0,10"
+                                   BackgroundColor="#1A1A1A"
+                                   BorderColor="#FFD700"
+                                   CornerRadius="12">
+
+                                <VerticalStackLayout Spacing="6">
+
+                                    <Label Text="{Binding Title}"
+                                           FontSize="20"
+                                           FontAttributes="Bold"
+                                           TextColor="#FFD700" />
+
+                                    <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
+                                           FontSize="16"
+                                           TextColor="White" />
+
+                                    <FlexLayout Wrap="Wrap"
+                                                Direction="Row"
+                                                BindableLayout.ItemsSource="{Binding Tags}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate>
+                                                <Frame Padding="6,2"
+                                                       Margin="4"
+                                                       BackgroundColor="#333333"
+                                                       CornerRadius="8">
+                                                    <Label Text="{Binding Name}"
+                                                           TextColor="#FFD700"
+                                                           FontSize="14"/>
+                                                </Frame>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </FlexLayout>
+
+                                </VerticalStackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
 
             </Grid>
-
-            <!-- layout principal -->
-            <Grid Padding="20" RowDefinitions="Auto,Auto,*" RowSpacing="20">
-                <VerticalStackLayout>
-                    <Label Grid.Row="0"
-                           Text="Choix livre"
-                           FontSize="32"
-                           FontAttributes="Bold"
-                           HorizontalOptions="Center"
-                           TextColor="#FFD700"
-                           FontFamily="OrbitronBold"
-                           HorizontalTextAlignment="Center"/>
-
-                    <Button x:Name="DeckAddBtn"
-                            Text="+"
-                            Clicked="OnClickedAddBook"
-                            BackgroundColor="#2A2A2A"
-                            TextColor="#FFD700"
-                            FontSize="20"
-                            Margin="0,60,0,0"
-                            HeightRequest="50"
-                            WidthRequest="50"
-                            CornerRadius="80"
-                            BorderColor="#FFD700"
-                            BorderWidth="3"
-                            HorizontalOptions="Center"
-                            Opacity="0.8"/>
-                    
-                </VerticalStackLayout>
-            </Grid>
-
-            <CollectionView Grid.Row="2"
-                ItemsSource="{Binding Books}"
-                SelectionMode="Single"
-                Margin="0,20,0,0">
-
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Frame Padding="15"
-                               Margin="0,10"
-                               BackgroundColor="#1A1A1A"
-                               BorderColor="#FFD700"
-                               CornerRadius="12">
-
-                            <VerticalStackLayout Spacing="6">
-                                <!-- Titre -->
-                                <Label Text="{Binding Title}"
-                                       FontSize="20"
-                                       FontAttributes="Bold"
-                                       TextColor="#FFD700" />
-
-                                <!-- Nombre de pages -->
-                                <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
-                                       FontSize="16"
-                                       TextColor="White" />
-
-                                <!-- Tags -->
-                                <FlexLayout Wrap="Wrap" Direction="Row" BindableLayout.ItemsSource="{Binding Tags}">
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate>
-                                            <Frame Padding="6,2"
-                                                   Margin="4"
-                                                   BackgroundColor="#333333"
-                                                   CornerRadius="8">
-                                                <Label Text="{Binding Name}"
-                                                       TextColor="#FFD700"
-                                                       FontSize="14"/>
-                                            </Frame>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </FlexLayout>
-                            </VerticalStackLayout>
-                        </Frame>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
         </Grid>
     </Grid>
 </ContentPage>
