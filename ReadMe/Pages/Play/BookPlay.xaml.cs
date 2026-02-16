@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Graphics;
@@ -19,51 +18,42 @@ public partial class BookPlay : ContentPage
 
     private bool _showingCover = true;
     private int _sectionIndex = 0;
-    private int _pageInSection = 0;
-    private int _pagesInSection = 1;
+    private int _pageInSection = 0;   // 0-based
+    private int _pagesInSection = 1;  // calculé via JS
 
-    private int _estimatedTotalPages = 1;
-    private int _estimatedCurrentGlobalPage = 1;
+    // VRAIE numérotation (colonnes) sur tout le livre
+    private int _totalPagesExact = 1;     // inclut cover
+    private int _currentPageExact = 1;   // cover = 1
 
     private WebView? _webView;
     private bool _webViewLoadedOnce;
 
+    private bool _precomputeStarted;
+    private readonly SemaphoreSlim _measureLock = new(1, 1);
+
     private readonly Dictionary<string, int> _fileToSectionIndex = new(StringComparer.OrdinalIgnoreCase);
     private string? _pendingAnchor;
-
-    private CancellationTokenSource? _fillCts;
 
     public BookPlay(Models.Book book)
     {
         InitializeComponent();
         _book = book;
 
-        DisplayCover(); // affichage immédiat (pas de freeze)
+        DisplayCover(); // affichage immédiat
+        UpdatePageIndicatorExact(); // 1/1 au départ
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        // animation légère (et stoppable)
-        _fillCts ??= new CancellationTokenSource();
-        _ = AnimateFill(_fillCts.Token);
-
         if (!_initialized)
-            _ = InitializeAsync(); // fire-and-forget (mais le travail lourd est en background)
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        _fillCts?.Cancel();
-        _fillCts = null;
+            _ = InitializeAsync();
     }
 
     // --------------------
-    // Init / Load EPUB (background)
+    // INIT / LOAD EPUB (background)
     // --------------------
-
     private async Task InitializeAsync()
     {
         if (_initialized || _isLoading)
@@ -96,7 +86,6 @@ public partial class BookPlay : ContentPage
 
                     _sections.Add(new Section
                     {
-                        Title = key,
                         Key = key,
                         RawXhtml = xhtml.Content,
                         Html = null,
@@ -110,7 +99,6 @@ public partial class BookPlay : ContentPage
                 {
                     _sections.Add(new Section
                     {
-                        Title = "",
                         Key = "",
                         RawXhtml = BuildFallbackHtml("Aucun contenu EPUB détecté."),
                         Html = null,
@@ -121,8 +109,17 @@ public partial class BookPlay : ContentPage
 
             _initialized = true;
 
-            // Option: si tu veux démarrer direct au chapitre 1
-            // DisplaySectionAsync(0, 0);
+            // total minimal : cover + 1 page par section
+            RecomputeTotalPagesExact();
+            MainThread.BeginInvokeOnMainThread(UpdatePageIndicatorExact);
+
+            // Lancer le calcul réel (progressif) des pages de toutes les sections
+            if (!_precomputeStarted)
+            {
+                _precomputeStarted = true;
+                EnsureWebView(); // crée WebView principal
+                _ = PrecomputeAllPageCountsAsync();
+            }
         }
         finally
         {
@@ -131,9 +128,8 @@ public partial class BookPlay : ContentPage
     }
 
     // --------------------
-    // WebView
+    // WEBVIEW
     // --------------------
-
     private void EnsureWebView()
     {
         if (_webView != null)
@@ -155,6 +151,9 @@ public partial class BookPlay : ContentPage
 
     private async Task DisplaySectionAsync(int sectionIndex, int pageInSection)
     {
+        if (!_initialized)
+            await InitializeAsync();
+
         if (_sections.Count == 0)
             return;
 
@@ -168,7 +167,7 @@ public partial class BookPlay : ContentPage
         EnsureWebView();
         PageContent.Content = _webView;
 
-        // lazy build HTML en background (gros gain perf)
+        // build HTML lazy
         var sec = _sections[_sectionIndex];
         if (sec.Html == null)
         {
@@ -178,13 +177,10 @@ public partial class BookPlay : ContentPage
         }
 
         _webViewLoadedOnce = false;
-        _webView!.Source = new HtmlWebViewSource
-        {
-            Html = _sections[_sectionIndex].Html!
-        };
+        _webView!.Source = new HtmlWebViewSource { Html = _sections[_sectionIndex].Html! };
     }
 
-    // Interception des liens internes pour éviter file://android_asset/... ERR_FILE_NOT_FOUND
+    // Interception liens internes EPUB (évite file://android_asset/... not found)
     private async void OnWebViewNavigating(object? sender, WebNavigatingEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(e.Url))
@@ -202,7 +198,6 @@ public partial class BookPlay : ContentPage
 
         e.Cancel = true;
 
-        // href="#anchor" dans le même doc
         if (url.StartsWith("#"))
         {
             string anchorOnly = url.TrimStart('#');
@@ -221,9 +216,9 @@ public partial class BookPlay : ContentPage
 
         int lastSlash = beforeHash.LastIndexOf('/');
         string filePart = lastSlash >= 0 ? beforeHash[(lastSlash + 1)..] : beforeHash;
+
         filePart = Uri.UnescapeDataString(filePart);
         filePart = NormalizeEpubPath(filePart);
-
         string fileOnly = GetFileNameOnly(filePart);
 
         if (_fileToSectionIndex.TryGetValue(filePart, out int targetSection) ||
@@ -236,7 +231,6 @@ public partial class BookPlay : ContentPage
             return;
         }
 
-        // sinon tente juste l’ancre
         if (!string.IsNullOrWhiteSpace(anchor) && _webView != null)
         {
             await _webView.EvaluateJavaScriptAsync(
@@ -254,39 +248,30 @@ public partial class BookPlay : ContentPage
             return;
         _webViewLoadedOnce = true;
 
-        // Attendre un peu + laisser fonts/images stabiliser le layout
         await Task.Delay(120);
 
         try
         {
-            // ✅ pageCount fiable : basé sur rm_content.scrollWidth et rm_viewport.clientWidth
             string pagesStr = await _webView.EvaluateJavaScriptAsync(
                 "window.__rm_reader && window.__rm_reader.pageCount ? window.__rm_reader.pageCount() : '1'"
             );
 
-            var digits = Regex.Match(pagesStr ?? "", "\\d+").Value;
-            if (!int.TryParse(digits, out _pagesInSection) || _pagesInSection < 1)
-                _pagesInSection = 1;
+            _pagesInSection = ParseJsInt(pagesStr, fallback: 1);
 
-            // si Android renvoie encore 1 alors qu'il y a du contenu, on retente après un délai
+            // retry si Android renvoie 1 trop tôt
             if (_pagesInSection == 1)
             {
-                await Task.Delay(200);
+                await Task.Delay(250);
                 pagesStr = await _webView.EvaluateJavaScriptAsync(
                     "window.__rm_reader && window.__rm_reader.pageCount ? window.__rm_reader.pageCount() : '1'"
                 );
-                digits = Regex.Match(pagesStr ?? "", "\\d+").Value;
-                if (int.TryParse(digits, out int retry) && retry > 1)
-                    _pagesInSection = retry;
+                int retry = ParseJsInt(pagesStr, fallback: 1);
+                if (retry > 1) _pagesInSection = retry;
             }
 
             var sec = _sections[_sectionIndex];
-            sec.PageCount = _pagesInSection;
+            sec.PageCount = Math.Max(1, _pagesInSection);
             _sections[_sectionIndex] = sec;
-
-            _estimatedTotalPages = 1;
-            for (int i = 0; i < _sections.Count; i++)
-                _estimatedTotalPages += Math.Max(1, _sections[i].PageCount);
 
             if (_pageInSection >= _pagesInSection)
                 _pageInSection = _pagesInSection - 1;
@@ -295,7 +280,6 @@ public partial class BookPlay : ContentPage
                 $"window.__rm_reader && window.__rm_reader.goTo && window.__rm_reader.goTo({_pageInSection});"
             );
 
-            // ancre pending (clic TOC)
             if (!string.IsNullOrWhiteSpace(_pendingAnchor))
             {
                 string a = _pendingAnchor;
@@ -307,8 +291,7 @@ public partial class BookPlay : ContentPage
                 );
             }
 
-            _estimatedCurrentGlobalPage = ComputeEstimatedGlobalPage();
-            UpdateProgress();
+            UpdatePageIndicatorExact();
         }
         catch
         {
@@ -317,52 +300,260 @@ public partial class BookPlay : ContentPage
             sec.PageCount = 1;
             _sections[_sectionIndex] = sec;
 
-            _estimatedCurrentGlobalPage = ComputeEstimatedGlobalPage();
-            UpdateProgress();
+            UpdatePageIndicatorExact();
         }
     }
 
-    private int ComputeEstimatedGlobalPage()
+    // --------------------
+    // PRÉCALCUL DES PAGES (vraies colonnes) POUR TOUTES LES SECTIONS
+    // --------------------
+    private async Task PrecomputeAllPageCountsAsync()
     {
-        int page = 1; // cover
-        for (int i = 0; i < _sectionIndex; i++)
-            page += Math.Max(1, _sections[i].PageCount);
+        // attendre l'init
+        while (!_initialized)
+            await Task.Delay(50);
 
-        page += Math.Clamp(_pageInSection, 0, Math.Max(0, _pagesInSection - 1));
-        return Math.Max(1, page);
+        if (MeasureWebView == null || _sections.Count == 0)
+            return;
+
+        await _measureLock.WaitAsync();
+        try
+        {
+            for (int i = 0; i < _sections.Count; i++)
+            {
+                // si déjà mesuré correctement, skip
+                if (_sections[i].PageCount > 1)
+                    continue;
+
+                var sec = _sections[i];
+
+                if (sec.Html == null)
+                {
+                    string built = await Task.Run(() => BuildSectionHtml(sec.RawXhtml ?? "", sec.Key ?? ""));
+                    sec.Html = built;
+                    _sections[i] = sec;
+                }
+
+                var tcs = new TaskCompletionSource<bool>();
+
+                void Handler(object? s, WebNavigatedEventArgs e)
+                {
+                    MeasureWebView.Navigated -= Handler;
+                    tcs.TrySetResult(e.Result == WebNavigationResult.Success);
+                }
+
+                MeasureWebView.Navigated += Handler;
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    MeasureWebView.Source = new HtmlWebViewSource { Html = _sections[i].Html! };
+                });
+
+                bool ok = await tcs.Task;
+                if (!ok)
+                    continue;
+
+                await Task.Delay(160);
+
+                string pagesStr = await MeasureWebView.EvaluateJavaScriptAsync(
+                    "window.__rm_reader && window.__rm_reader.pageCount ? window.__rm_reader.pageCount() : '1'"
+                );
+
+                int pc = ParseJsInt(pagesStr, fallback: 1);
+
+                if (pc == 1)
+                {
+                    await Task.Delay(260);
+                    pagesStr = await MeasureWebView.EvaluateJavaScriptAsync(
+                        "window.__rm_reader && window.__rm_reader.pageCount ? window.__rm_reader.pageCount() : '1'"
+                    );
+                    int retry = ParseJsInt(pagesStr, fallback: 1);
+                    if (retry > 1) pc = retry;
+                }
+
+                sec = _sections[i];
+                sec.PageCount = Math.Max(1, pc);
+                _sections[i] = sec;
+
+                // update UI
+                MainThread.BeginInvokeOnMainThread(UpdatePageIndicatorExact);
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+        finally
+        {
+            _measureLock.Release();
+        }
     }
 
     // --------------------
-    // Cover
+    // COVER
     // --------------------
-
     private void DisplayCover()
     {
         _showingCover = true;
-        _estimatedCurrentGlobalPage = 1;
+        _sectionIndex = 0;
+        _pageInSection = 0;
+        _pagesInSection = 1;
+
+        var cover = new Image
+        {
+            Source = _book.CoverImage?.Length > 0
+                ? ImageSource.FromStream(() => new MemoryStream(_book.CoverImage))
+                : "bookcover.jpg",
+            Aspect = Aspect.AspectFit
+        };
+
+        var tap = new TapGestureRecognizer();
+        tap.Tapped += async (_, __) =>
+        {
+            if (!_initialized)
+                await InitializeAsync();
+
+            await DisplaySectionAsync(0, 0);
+            UpdatePageIndicatorExact();
+        };
+        cover.GestureRecognizers.Add(tap);
 
         PageContent.Content = new Grid
         {
             Padding = new Thickness(14),
-            Children =
-            {
-                new Image
-                {
-                    Source = _book.CoverImage?.Length > 0
-                        ? ImageSource.FromStream(() => new MemoryStream(_book.CoverImage))
-                        : "bookcover.jpg",
-                    Aspect = Aspect.AspectFit
-                }
-            }
+            Children = { cover }
         };
 
-        UpdateProgress();
+        UpdatePageIndicatorExact();
     }
 
     // --------------------
-    // HTML build (lazy)
+    // PAGE TURN (swipe)
     // --------------------
+    private async Task AnimatePageTurn(bool forward)
+    {
+        PageContent.AnchorX = forward ? 1 : 0;
+        await PageContent.RotateYTo(forward ? -90 : 90, 160u, Easing.CubicIn);
+        PageContent.RotationY = forward ? 90 : -90;
+        await PageContent.RotateYTo(0, 160u, Easing.CubicOut);
+    }
 
+    private async void OnSwipeLeft(object sender, SwipedEventArgs e)
+    {
+        if (!_initialized)
+            await InitializeAsync();
+
+        if (_showingCover)
+        {
+            await AnimatePageTurn(true);
+            await DisplaySectionAsync(0, 0);
+            UpdatePageIndicatorExact();
+            return;
+        }
+
+        if (_pageInSection < _pagesInSection - 1)
+        {
+            _pageInSection++;
+            await AnimatePageTurn(true);
+            if (_webView != null)
+                await _webView.EvaluateJavaScriptAsync(
+                    $"window.__rm_reader && window.__rm_reader.goTo && window.__rm_reader.goTo({_pageInSection});"
+                );
+        }
+        else if (_sectionIndex < _sections.Count - 1)
+        {
+            await AnimatePageTurn(true);
+            await DisplaySectionAsync(_sectionIndex + 1, 0);
+        }
+
+        UpdatePageIndicatorExact();
+    }
+
+    private async void OnSwipeRight(object sender, SwipedEventArgs e)
+    {
+        if (!_initialized)
+            await InitializeAsync();
+
+        if (_showingCover)
+            return;
+
+        if (_pageInSection > 0)
+        {
+            _pageInSection--;
+            await AnimatePageTurn(false);
+            if (_webView != null)
+                await _webView.EvaluateJavaScriptAsync(
+                    $"window.__rm_reader && window.__rm_reader.goTo && window.__rm_reader.goTo({_pageInSection});"
+                );
+        }
+        else if (_sectionIndex > 0)
+        {
+            int prev = _sectionIndex - 1;
+            int lastPage = Math.Max(0, Math.Max(1, _sections[prev].PageCount) - 1);
+
+            await AnimatePageTurn(false);
+            await DisplaySectionAsync(prev, lastPage);
+        }
+        else
+        {
+            await AnimatePageTurn(false);
+            DisplayCover();
+            return;
+        }
+
+        UpdatePageIndicatorExact();
+    }
+
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        // Sauvegarde : page globale (1-based, cover incluse)
+        _book.LastPageRead = Math.Max(0, _currentPageExact - 1);
+        await Navigation.PopAsync();
+    }
+
+    // --------------------
+    // PAGE INDICATOR (vrai)
+    // --------------------
+    private void RecomputeTotalPagesExact()
+    {
+        int total = 1; // cover
+        for (int i = 0; i < _sections.Count; i++)
+            total += Math.Max(1, _sections[i].PageCount);
+
+        _totalPagesExact = Math.Max(1, total);
+    }
+
+    private int ComputeCurrentPageExact()
+    {
+        if (_showingCover)
+            return 1;
+
+        int page = 1; // cover
+        for (int i = 0; i < _sectionIndex; i++)
+            page += Math.Max(1, _sections[i].PageCount);
+
+        page += (_pageInSection + 1);
+        return Math.Max(1, page);
+    }
+
+    private void UpdatePageIndicatorExact()
+    {
+        RecomputeTotalPagesExact();
+        _currentPageExact = ComputeCurrentPageExact();
+
+        if (PageIndicator != null)
+            PageIndicator.Text = $"{_currentPageExact}/{_totalPagesExact}";
+    }
+
+    private static int ParseJsInt(string? jsValue, int fallback)
+    {
+        var digits = Regex.Match(jsValue ?? "", "\\d+").Value;
+        return int.TryParse(digits, out int v) ? v : fallback;
+    }
+
+    // --------------------
+    // HTML BUILD
+    // --------------------
     private string BuildSectionHtml(string rawXhtml, string baseKey)
     {
         if (_epub == null)
@@ -386,7 +577,7 @@ public partial class BookPlay : ContentPage
 
     private static string ExtractAllStyleBlocks(string html)
     {
-        var matches = Regex.Matches(html, "<style[^>]*>(?<css>[\\s\\S]*?)</style>", RegexOptions.IgnoreCase);
+        var matches = Regex.Matches(html, "<style(?:(?!>).)*>(?<css>[\\s\\S]*?)</style>", RegexOptions.IgnoreCase);
         if (matches.Count == 0) return "";
 
         var sb = new StringBuilder();
@@ -396,7 +587,7 @@ public partial class BookPlay : ContentPage
         return sb.ToString();
     }
 
-    // ✅ Template corrigé: rm_viewport = conteneur scrollable fiable (Android)
+    // Template : scroll horizontal + pagination colonne (vraies pages)
     private string WrapWithReaderTemplate(string innerBodyHtml, string extraCss)
     {
         return $$"""
@@ -501,7 +692,6 @@ public partial class BookPlay : ContentPage
           var el = document.getElementById(id);
           if (!viewport || !el) return;
 
-          // Position de l'élément dans le layout multi-colonnes
           var x = 0;
           var node = el;
           while (node) {
@@ -522,7 +712,6 @@ public partial class BookPlay : ContentPage
         goToAnchor: goToAnchor
       };
 
-      // Layout initial + relayout après fonts/images
       function relayoutLater() {
         layoutColumns();
         requestAnimationFrame(function(){ layoutColumns(); });
@@ -551,9 +740,8 @@ public partial class BookPlay : ContentPage
     }
 
     // --------------------
-    // EPUB CSS/Assets
+    // EPUB CSS / ASSETS
     // --------------------
-
     private string InlineStylesheets(string html, string baseKey)
     {
         if (_epub?.Content?.Css == null)
@@ -576,7 +764,6 @@ public partial class BookPlay : ContentPage
             if (!_epub.Content.Css.TryGetLocalFileByFilePath(resolvedPath, out var cssFile) &&
                 !_epub.Content.Css.TryGetLocalFileByKey(resolvedPath, out cssFile))
             {
-                // fallback: nom de fichier seul
                 string fileOnly = GetFileNameOnly(resolvedPath);
                 if (!_epub.Content.Css.TryGetLocalFileByFilePath(fileOnly, out cssFile) &&
                     !_epub.Content.Css.TryGetLocalFileByKey(fileOnly, out cssFile))
@@ -719,9 +906,8 @@ public partial class BookPlay : ContentPage
     }
 
     // --------------------
-    // Helpers
+    // HELPERS
     // --------------------
-
     private static bool IsExternalUrl(string url)
         => url.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
            || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
@@ -812,130 +998,8 @@ public partial class BookPlay : ContentPage
     private static string JsString(string s)
         => "'" + (s ?? "").Replace("\\", "\\\\").Replace("'", "\\'") + "'";
 
-    // --------------------
-    // Gestures + animation
-    // --------------------
-
-    private async Task AnimatePageTurn(bool forward)
-    {
-        PageContent.AnchorX = forward ? 1 : 0;
-        await PageContent.RotateYTo(forward ? -90 : 90, 190u, Easing.CubicIn);
-        PageContent.RotationY = forward ? 90 : -90;
-        await PageContent.RotateYTo(0, 190u, Easing.CubicOut);
-    }
-
-    private async void OnSwipeLeft(object sender, SwipedEventArgs e)
-    {
-        if (!_initialized)
-            await InitializeAsync();
-
-        if (_showingCover)
-        {
-            await AnimatePageTurn(true);
-            await DisplaySectionAsync(0, 0);
-            return;
-        }
-
-        if (_pageInSection < _pagesInSection - 1)
-        {
-            _pageInSection++;
-            await AnimatePageTurn(true);
-            if (_webView != null)
-                await _webView.EvaluateJavaScriptAsync($"window.__rm_reader && window.__rm_reader.goTo && window.__rm_reader.goTo({_pageInSection});");
-        }
-        else if (_sectionIndex < _sections.Count - 1)
-        {
-            await AnimatePageTurn(true);
-            await DisplaySectionAsync(_sectionIndex + 1, 0);
-        }
-
-        _estimatedCurrentGlobalPage = ComputeEstimatedGlobalPage();
-        UpdateProgress();
-    }
-
-    private async void OnSwipeRight(object sender, SwipedEventArgs e)
-    {
-        if (!_initialized)
-            await InitializeAsync();
-
-        if (_showingCover)
-            return;
-
-        if (_pageInSection > 0)
-        {
-            _pageInSection--;
-            await AnimatePageTurn(false);
-            if (_webView != null)
-                await _webView.EvaluateJavaScriptAsync($"window.__rm_reader && window.__rm_reader.goTo && window.__rm_reader.goTo({_pageInSection});");
-        }
-        else if (_sectionIndex > 0)
-        {
-            int prev = _sectionIndex - 1;
-            int lastPage = Math.Max(0, Math.Max(1, _sections[prev].PageCount) - 1);
-
-            await AnimatePageTurn(false);
-            await DisplaySectionAsync(prev, lastPage);
-        }
-        else
-        {
-            await AnimatePageTurn(false);
-            DisplayCover();
-        }
-
-        _estimatedCurrentGlobalPage = ComputeEstimatedGlobalPage();
-        UpdateProgress();
-    }
-
-    private async void OnBackClicked(object sender, EventArgs e)
-    {
-        _book.LastPageRead = Math.Max(0, _estimatedCurrentGlobalPage - 1);
-        await Navigation.PopAsync();
-    }
-
-    // --------------------
-    // Progress UI
-    // --------------------
-
-    private void UpdateProgress()
-    {
-        double ratio = _estimatedTotalPages <= 0 ? 0 : (double)_estimatedCurrentGlobalPage / _estimatedTotalPages;
-        ratio = Math.Clamp(ratio, 0, 1);
-
-        double correctedRatio = ratio * ((250.0 - 110.0) / 250.0);
-        ProgressViewport.ScaleX = correctedRatio;
-    }
-
-    // Animation de fond -> throttle à 30fps + stoppable (évite "Skipped frames")
-    private async Task AnimateFill(CancellationToken ct)
-    {
-        double speed = 80;
-        double tileWidth = 250;
-        double position = 0;
-
-        var sw = Stopwatch.StartNew();
-        long last = sw.ElapsedMilliseconds;
-
-        while (!ct.IsCancellationRequested)
-        {
-            long now = sw.ElapsedMilliseconds;
-            double dt = (now - last) / 1000.0;
-            last = now;
-
-            position += speed * dt;
-            position %= tileWidth;
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                FillBand.TranslationX = -position;
-            });
-
-            await Task.Delay(33, ct); // 30fps
-        }
-    }
-
     private struct Section
     {
-        public string Title;
         public string Key;
         public string? RawXhtml;
         public string? Html;
