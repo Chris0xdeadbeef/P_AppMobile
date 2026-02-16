@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="ReadMe.Pages.Play.BookPlay"
     NavigationPage.HasNavigationBar="False"
-    BackgroundColor="Black">
+    BackgroundColor="#0B0B0B">
 
     <Grid RowDefinitions="80,*">
 
@@ -24,64 +24,71 @@
 
             <!-- Progress bar fantasy -->
             <Grid HeightRequest="48"
-                      WidthRequest="200"
-                      HorizontalOptions="End">
+                  WidthRequest="200"
+                  HorizontalOptions="End">
 
                 <!-- Viewport = zone visible -->
                 <Grid x:Name="ProgressViewport"
-                          Margin="23,0,0,0"
-                          WidthRequest="250"
-                          HeightRequest="23"
-                          IsClippedToBounds="True"
-                          HorizontalOptions="Start"
-                          AnchorX="0">
+                      Margin="23,0,0,0"
+                      WidthRequest="250"
+                      HeightRequest="23"
+                      IsClippedToBounds="True"
+                      HorizontalOptions="Start"
+                      AnchorX="0">
 
                     <!-- Bande animée -->
                     <Grid x:Name="FillBand"
-                              WidthRequest="750"
-                              HeightRequest="23">
+                          WidthRequest="750"
+                          HeightRequest="23">
 
                         <Image Source="progress_fill.png"
-                                   WidthRequest="250"
-                                   HeightRequest="23"
-                                   Aspect="AspectFit"/>
+                               WidthRequest="250"
+                               HeightRequest="23"
+                               Aspect="AspectFit"/>
 
                         <Image Source="progress_fill.png"
-                                   WidthRequest="250"
-                                   HeightRequest="23"
-                                   Aspect="AspectFit"
-                                   TranslationX="250"/>
+                               WidthRequest="250"
+                               HeightRequest="23"
+                               Aspect="AspectFit"
+                               TranslationX="250"/>
 
                         <Image Source="progress_fill.png"
-                                   WidthRequest="250"
-                                   HeightRequest="23"
-                                   Aspect="AspectFit"
-                                   TranslationX="500"/>
+                               WidthRequest="250"
+                               HeightRequest="23"
+                               Aspect="AspectFit"
+                               TranslationX="500"/>
                     </Grid>
                 </Grid>
 
                 <!-- Cadre -->
                 <Image Source="progress_empty.png"
-                           Aspect="Fill"/>
+                       Aspect="Fill"/>
             </Grid>
         </Grid>
 
         <!-- PAGE DE LECTURE -->
         <Grid Grid.Row="1" x:Name="PageContainer"
-              BackgroundColor="Black"
-              Padding="20">
+              BackgroundColor="#0B0B0B"
+              Padding="18">
+
+            <!-- Texture (optionnelle) -->
             <Image Source="bgpages.jpg"
                    Aspect="AspectFill"
-                   Opacity="1"
-                   InputTransparent="True"
-                    Opacity="0.6"/>
+                   Opacity="0.25"
+                   InputTransparent="True"/>
 
-            <!-- Contenu affiché -->
-            <ContentView x:Name="PageContent"
-                         HorizontalOptions="Fill"
-                         VerticalOptions="Fill"
-                         Opacity="0.6">
-            </ContentView>
+            <!-- Carte "page" -->
+            <Frame
+                BackgroundColor="#F6F1E7"
+                CornerRadius="18"
+                Padding="0"
+                HasShadow="True">
+
+                <!-- Contenu affiché (cover / webview paginée) -->
+                <ContentView x:Name="PageContent"
+                             HorizontalOptions="Fill"
+                             VerticalOptions="Fill"/>
+            </Frame>
 
             <!-- Gestures -->
             <Grid.GestureRecognizers>
