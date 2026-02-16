@@ -1,4 +1,5 @@
 using ReadMe.Services;
+using System.Text.RegularExpressions;
 using VersOne.Epub;
 
 namespace ReadMe.Pages.Book;
@@ -55,7 +56,7 @@ public partial class AddBook : ContentPage
             EpubBook epubBook = EpubReader.ReadBook(epubStream);
 
             // Nombre de "pages" = nombre de sections
-            int pageCount = epubBook.ReadingOrder.Count;
+            int pageCount = EstimateEpubPages(epubBook);
 
             // Extraction des métadonnées (pour l'instant basique)
             var (title, author, coverBytes) = await ExtractEpubMetadata(epubBytes, result.FileName);
@@ -81,6 +82,56 @@ public partial class AddBook : ContentPage
         {
             await DisplayAlert("Erreur", $"Impossible d'importer le fichier : {ex.Message}", "OK");
         }
+    }
+
+    private static int EstimateEpubPages(EpubBook epubBook)
+    {
+        // Page 1 = cover / page de garde
+        int total = 1;
+
+        // Heuristique : ~280-320 mots par page "livre" sur mobile
+        const int wordsPerPage = 300;
+
+        foreach (var xhtml in epubBook.ReadingOrder)
+        {
+            if (string.IsNullOrWhiteSpace(xhtml?.Content))
+                continue;
+
+            string text = StripHtmlToText(xhtml.Content);
+            int words = CountWords(text);
+
+            // au minimum 1 page par section
+            int pages = Math.Max(1, (int)Math.Ceiling(words / (double)wordsPerPage));
+            total += pages;
+        }
+
+        return Math.Max(1, total);
+    }
+
+    private static string StripHtmlToText(string html)
+    {
+        // supprime scripts/styles
+        html = Regex.Replace(html, "<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, "<style.*?</style>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+        // tags -> espaces
+        html = Regex.Replace(html, "<.*?>", " ", RegexOptions.Singleline);
+
+        // decode entités HTML
+        html = System.Net.WebUtility.HtmlDecode(html);
+
+        // normalise espaces
+        html = Regex.Replace(html, "\\s+", " ").Trim();
+        return html;
+    }
+
+    private static int CountWords(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return 0;
+
+        // mots = séquences lettres/chiffres
+        return Regex.Matches(text, "[\\p{L}\\p{N}]+").Count;
     }
 
     /// <summary>
