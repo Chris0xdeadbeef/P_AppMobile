@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    {{extraCss}}
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: transparent;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    #rm_viewport {
+      position: fixed;
+      inset: 0;
+      background: #F6F1E7;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #rm_viewport::-webkit-scrollbar { display: none; }
+
+    #rm_content {
+      height: 100%;
+      box-sizing: border-box;
+      padding: 0;
+      column-gap: 0px;
+      column-fill: auto;
+    }
+
+    .rm_page_pad {
+      padding: 26px 26px;
+      box-sizing: border-box;
+      height: 100%;
+    }
+
+    img, svg, video { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <div id="rm_viewport">
+    <div id="rm_content">
+      <div class="rm_page_pad" id="rm_pad">
+        {{innerBodyHtml}}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var viewport = null;
+      var content = null;
+
+      function vw() {
+        return (viewport && viewport.clientWidth) || document.documentElement.clientWidth || window.innerWidth || 1;
+      }
+
+      function layoutColumns() {
+        viewport = document.getElementById('rm_viewport');
+        content  = document.getElementById('rm_content');
+        if (!viewport || !content) return;
+
+        var w = Math.max(1, Math.floor(vw()));
+        content.style.columnWidth = w + 'px';
+        content.style.columnGap = '0px';
+        void content.offsetHeight;
+      }
+
+      function pageCount() {
+        if (!viewport || !content) {
+          viewport = document.getElementById('rm_viewport');
+          content  = document.getElementById('rm_content');
+          if (!viewport || !content) return 1;
+        }
+        var w = vw();
+        var sw = content.scrollWidth || 0;
+        return Math.max(1, Math.ceil(sw / w));
+      }
+
+      function goTo(pageIndex) {
+        if (!viewport) viewport = document.getElementById('rm_viewport');
+        if (!viewport) return;
+
+        var w = vw();
+        var target = Math.max(0, pageIndex) * w;
+        viewport.scrollLeft = target;
+      }
+
+      function goToAnchor(id) {
+        try {
+          if (!viewport) viewport = document.getElementById('rm_viewport');
+          var el = document.getElementById(id);
+          if (!viewport || !el) return;
+
+          var x = 0;
+          var node = el;
+          while (node) {
+            if (typeof node.offsetLeft === 'number') x += node.offsetLeft;
+            node = node.offsetParent;
+          }
+
+          var w = vw();
+          var page = Math.max(0, Math.floor(x / w));
+          goTo(page);
+        } catch (e) {}
+      }
+
+      window.__rm_reader = {
+        layoutColumns: layoutColumns,
+        pageCount: pageCount,
+        goTo: goTo,
+        goToAnchor: goToAnchor
+      };
+
+      function relayoutLater() {
+        layoutColumns();
+        requestAnimationFrame(function(){ layoutColumns(); });
+        setTimeout(layoutColumns, 80);
+        setTimeout(layoutColumns, 220);
+      }
+
+      relayoutLater();
+
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function(){ relayoutLater(); });
+      }
+
+      window.addEventListener('resize', function () {
+        if (!viewport) viewport = document.getElementById('rm_viewport');
+        var w = vw();
+        var p = Math.max(0, Math.round((viewport ? viewport.scrollLeft : 0) / w));
+        layoutColumns();
+        goTo(p);
+      });
+    })();
+  </script>
+</body>
+</html>
