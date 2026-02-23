@@ -665,7 +665,7 @@ public partial class BookPlay : ContentPage
     }
 
     // --------------------
-    // PAGE INDICATOR (vrai)
+    // PAGE INDICATOR
     // --------------------
 
     /// <summary>
