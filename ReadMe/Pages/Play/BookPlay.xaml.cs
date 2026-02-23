@@ -21,7 +21,7 @@ public partial class BookPlay : ContentPage
     private EpubBook? _epub;
 
     /// <summary>Liste des sections (chapitres/fichiers XHTML) dans l'ordre de lecture.</summary>
-    private readonly List<Section> _sections = new();
+    private readonly List<Section> _sections = [];
 
     /// <summary>Indique si l'initialisation (lecture EPUB + sections) a déjà été faite.</summary>
     private bool _initialized;
