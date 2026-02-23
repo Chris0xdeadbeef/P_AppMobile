@@ -64,6 +64,21 @@
                         Opacity="0.8"
                         TranslationX="-220"/>
 
+                <Button x:Name="BtnImportOnline"
+                        Text="Consulter le Grand Datavault"
+                        Clicked="ImportBookOnline"
+                        BackgroundColor="#3A0000"
+                        TextColor="#FFD700"
+                        LineBreakMode="WordWrap"
+                        FontSize="20"
+                        HeightRequest="60"
+                        CornerRadius="8"
+                        BorderColor="#FFD700"
+                        BorderWidth="2"
+                        Padding="90,0,0,0"
+                        Opacity="0.8"
+                        TranslationX="-220"/>
+
                 <Button x:Name="BtnAdd"
                         Text="Encoder dans la Memoire Sacree"
                         Clicked="OnAddBookClicked"
@@ -77,7 +92,7 @@
                         BorderWidth="2"
                         Padding="90,0,0,0"
                         Opacity="0.8"
-                        TranslationX="-220"/>
+                        TranslationX="-220"/>                
 
                 <!-- Image cliquable -->
                 <Image x:Name="BorderImage"
