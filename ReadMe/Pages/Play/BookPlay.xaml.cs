@@ -159,7 +159,8 @@ public partial class BookPlay : ContentPage
                         Key = key,
                         RawXhtml = xhtml.Content,
                         Html = null,     // construit en lazy (au premier affichage / mesure)
-                        PageCount = 1    // valeur minimale, sera mesurée via JS
+                        PageCount = 1,    // valeur minimale, sera mesurée via JS
+                        Measured = false
                     });
 
                     idx++;
@@ -378,6 +379,7 @@ public partial class BookPlay : ContentPage
             // Persist de la mesure dans la section (sert au total global)
             var sec = _sections[_sectionIndex];
             sec.PageCount = Math.Max(1, _pagesInSection);
+            sec.Measured = true;
             _sections[_sectionIndex] = sec;
 
             // Clamp la page demandée si elle dépasse (après mesure)
@@ -440,7 +442,7 @@ public partial class BookPlay : ContentPage
             for (int i = 0; i < _sections.Count; i++)
             {
                 // si déjà mesuré correctement, skip
-                if (_sections[i].PageCount > 1)
+                if (_sections[i].Measured)
                     continue;
 
                 var sec = _sections[i];
@@ -498,6 +500,7 @@ public partial class BookPlay : ContentPage
                 // Persist mesure
                 sec = _sections[i];
                 sec.PageCount = Math.Max(1, pc);
+                sec.Measured = true;
                 _sections[i] = sec;
 
                 // update UI (total global peut changer)
@@ -707,8 +710,8 @@ public partial class BookPlay : ContentPage
         RecomputeTotalPagesExact();
         _currentPageExact = ComputeCurrentPageExact();
 
-        if (PageIndicator != null)
-            PageIndicator.Text = $"{_currentPageExact}/{_totalPagesExact}";
+        if (PageIndicatorLabel != null)
+            PageIndicatorLabel.Text = $"{_currentPageExact}/{_totalPagesExact}";
     }
 
     /// <summary>
@@ -789,7 +792,7 @@ public partial class BookPlay : ContentPage
         if (matches.Count == 0) return "";
 
         var sb = new StringBuilder();
-        foreach (Match m in matches)
+        foreach (Match m in matches.Cast<Match>())
             sb.AppendLine(m.Groups["css"].Value);
 
         return sb.ToString();
@@ -871,7 +874,7 @@ public partial class BookPlay : ContentPage
             string url = m.Groups["url"].Value;
 
             // On ignore externes et ancres
-            if (IsExternalUrl(url) || url.StartsWith("#"))
+            if (IsExternalUrl(url) || url.StartsWith('#'))
                 return m.Value;
 
             string resolved = ResolvePath(baseKey, url);
@@ -1131,5 +1134,15 @@ public partial class BookPlay : ContentPage
         public string? RawXhtml;
         public string? Html;
         public int PageCount;
+        public bool Measured;
+    }
+    private void OnNextPageClicked(object sender, EventArgs e)
+    {
+        OnSwipeLeft(sender, null!);
+    }
+
+    private void OnPrevPageClicked(object sender, EventArgs e)
+    {
+        OnSwipeRight(sender, null!);
     }
 }

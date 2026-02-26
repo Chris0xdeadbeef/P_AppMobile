@@ -26,12 +26,15 @@
 
         <!-- contenu de la page -->
         <Grid Grid.Row="1">
+
+            <!-- background -->
             <BoxView Color="Black" InputTransparent="True" />
             <Image Source="ajout.jpg"
                    Aspect="AspectFill"
                    Opacity="1"
                    InputTransparent="True" />
 
+            <!-- contenu -->
             <StackLayout Padding="20" Spacing="20">
                 <Label Text="Station Importation des Tomes"
                        FontSize="32"
@@ -92,7 +95,7 @@
                         BorderWidth="2"
                         Padding="90,0,0,0"
                         Opacity="0.8"
-                        TranslationX="-220"/>                
+                        TranslationX="-220"/>
 
                 <!-- Image cliquable -->
                 <Image x:Name="BorderImage"
@@ -107,6 +110,31 @@
                 </Image>
 
             </StackLayout>
+
+            <!-- OVERLAY LOADING (au-dessus de tout) -->
+            <Grid x:Name="LoadingOverlay"
+                  IsVisible="False"
+                  BackgroundColor="#AA000000"
+                  ZIndex="999">
+
+                <VerticalStackLayout HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="14">
+
+                    <ActivityIndicator x:Name="LoadingSpinner"
+                                       IsRunning="True"
+                                       WidthRequest="52"
+                                       HeightRequest="52"
+                                       Color="#FFD700" />
+
+                    <Label x:Name="LoadingLabel"
+                           Text="Chargement du manuscrit..."
+                           TextColor="#FFD700"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Grid>
+
         </Grid>
     </Grid>
 </ContentPage>

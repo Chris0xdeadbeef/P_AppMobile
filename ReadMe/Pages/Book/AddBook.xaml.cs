@@ -9,10 +9,10 @@ public partial class AddBook : ContentPage
 {
     private readonly BookService _bookService;
 
-    // Livre importé (local ou DB), prêt à être "encodé" dans la mémoire locale
+    /// <summary>Livre importé (local ou DB), prêt à être ajouté à la collection locale.</summary>
     private Models.Book? _importedBook;
 
-    // Etat du menu animé
+    /// <summary>État du menu animé (boutons cachés/visibles).</summary>
     private bool _menuVisible;
 
     private const string CONNECTION_STRING =
@@ -33,17 +33,38 @@ public partial class AddBook : ContentPage
     }
 
     // ----------------------------
+    // LOADING OVERLAY
+    // ----------------------------
+
+    /// <summary>
+    /// Affiche/masque l'overlay de chargement + désactive les boutons pour éviter les doubles clics.
+    /// </summary>
+    private void SetLoading(bool isLoading, string message = "Chargement du manuscrit...")
+    {
+        LoadingLabel.Text = message;
+
+        LoadingOverlay.IsVisible = isLoading;
+
+        BtnImport.IsEnabled = !isLoading;
+        BtnImportOnline.IsEnabled = !isLoading;
+        BtnAdd.IsEnabled = !isLoading;
+        BorderImage.IsEnabled = !isLoading;
+    }
+
+    // ----------------------------
     // IMPORT LOCAL (fichier EPUB)
     // ----------------------------
 
     /// <summary>
     /// Ouvre le sélecteur de fichiers et importe un EPUB depuis le téléphone.
-    /// Le livre est stocké en mémoire dans <see cref="_importedBook"/> jusqu'au clic sur "Ajouter".
+    /// Le livre reste en mémoire jusqu'au clic sur "Encoder".
     /// </summary>
     private async void ImportBook(object sender, EventArgs e)
     {
         try
         {
+            SetLoading(true, "Rite d'acquisition en cours...");
+
             var result = await FilePicker.Default.PickAsync(new PickOptions
             {
                 PickerTitle = "Sélectionner un fichier EPUB",
@@ -58,7 +79,12 @@ public partial class AddBook : ContentPage
             if (result == null)
                 return;
 
+            SetLoading(true, "Lecture du manuscrit...");
+
             byte[] epubBytes = await ReadAllBytesAsync(result);
+
+            SetLoading(true, "Sanctification du contenu...");
+
             _importedBook = await CreateImportedBookFromEpubAsync(
                 epubBytes: epubBytes,
                 fallbackFileName: result.FileName,
@@ -76,6 +102,10 @@ public partial class AddBook : ContentPage
         {
             await DisplayAlert("Erreur", $"Impossible d'importer le fichier : {ex.Message}", "OK");
         }
+        finally
+        {
+            SetLoading(false);
+        }
     }
 
     // ----------------------------------------
@@ -83,29 +113,32 @@ public partial class AddBook : ContentPage
     // ----------------------------------------
 
     /// <summary>
-    /// Importe un livre depuis MySQL.
-    /// Ordre DB (selon ta table) : id, epub (LONGBLOB), tag (text), page_de_lecture (int).
+    /// Importe un livre depuis MySQL en se basant sur la colonne title.
+    /// Colonnes attendues : title, epub (LONGBLOB), tag (text), page_de_lecture (int).
     /// </summary>
     private async void ImportBookOnline(object sender, EventArgs e)
     {
         try
         {
             string? title = await DisplayPromptAsync(
-                                    "Datavault",
-                                    "Entrez le TITRE du livre à extraire (colonne title).",
-                                    accept: "Extraire",
-                                    cancel: "Annuler"
-                                );
+                "Datavault",
+                "Entrez le TITRE du livre à extraire (colonne title).",
+                accept: "Extraire",
+                cancel: "Annuler"
+            );
 
             if (string.IsNullOrWhiteSpace(title))
                 return;
 
             title = title.Trim();
 
-            // Lecture DB (title, epub, tag, page_de_lecture)
+            SetLoading(true, "Connexion au Datavault...");
+
+            // DB -> (epub, tag, progression)
             (byte[] epubBytes, string? tag, int lastPage) = await FetchBookFromDatabaseAsync(title);
 
-            // Rebuild du modèle Book à partir de l'epub
+            SetLoading(true, "Assemblage du codex...");
+
             _importedBook = await CreateImportedBookFromEpubAsync(
                 epubBytes: epubBytes,
                 fallbackFileName: $"{title}.epub",
@@ -121,7 +154,6 @@ public partial class AddBook : ContentPage
         }
         catch (InvalidOperationException ex)
         {
-            // Erreurs "logiques" (ex: pas trouvé)
             await DisplayAlert("Datavault", ex.Message, "OK");
         }
         catch (MySqlException ex)
@@ -132,18 +164,22 @@ public partial class AddBook : ContentPage
         {
             await DisplayAlert("Erreur", $"Import impossible : {ex.Message}", "OK");
         }
+        finally
+        {
+            SetLoading(false);
+        }
     }
 
     /// <summary>
-    /// Récupère depuis MySQL un livre sous forme binaire (epub) + tag + progression.
+    /// Récupère depuis MySQL le contenu binaire (epub) + tag + progression, via title.
     /// </summary>
     private static async Task<(byte[] epubBytes, string? tag, int lastPageRead)> FetchBookFromDatabaseAsync(string title)
     {
         string sql = $@"
-                    SELECT title, epub, tag, page_de_lecture
-                    FROM {TABLE_NAME}
-                    WHERE title = @title
-                    LIMIT 1;";
+SELECT title, epub, tag, page_de_lecture
+FROM {TABLE_NAME}
+WHERE title = @title
+LIMIT 1;";
 
         await using var conn = new MySqlConnection(CONNECTION_STRING);
         await conn.OpenAsync();
@@ -156,11 +192,11 @@ public partial class AddBook : ContentPage
         if (!await reader.ReadAsync())
             throw new InvalidOperationException("Aucun manuscrit trouvé pour ce titre.");
 
-        // epub: LONGBLOB
         int epubOrdinal = reader.GetOrdinal("epub");
         if (reader.IsDBNull(epubOrdinal))
             throw new InvalidOperationException("Le champ EPUB est vide en base de données.");
 
+        // LONGBLOB -> byte[]
         byte[] epubBytes = (byte[])reader["epub"];
 
         string? tag = reader["tag"] as string;
@@ -169,7 +205,6 @@ public partial class AddBook : ContentPage
         int pageOrdinal = reader.GetOrdinal("page_de_lecture");
         if (!reader.IsDBNull(pageOrdinal))
         {
-            // page_de_lecture est "unsigned int" côté DB sur ton screenshot -> on convert proprement
             lastPage = Convert.ToInt32(reader["page_de_lecture"]);
             if (lastPage < 0) lastPage = 0;
         }
@@ -215,10 +250,8 @@ public partial class AddBook : ContentPage
     private async void OnBorderTapped(object sender, EventArgs e)
     {
         const uint animationSpeed = 250;
-
-        // Coord X fermé = caché, ouvert = 0
-        double closedX = -220;
-        double openedX = 0;
+        const double closedX = -220;
+        const double openedX = 0;
 
         if (_menuVisible)
         {
@@ -244,9 +277,7 @@ public partial class AddBook : ContentPage
     // HELPERS (lecture + parsing EPUB)
     // ----------------------------
 
-    /// <summary>
-    /// Lit un fichier choisi via FilePicker en mémoire (byte[]).
-    /// </summary>
+    /// <summary>Lit un fichier choisi via FilePicker en mémoire (byte[]).</summary>
     private static async Task<byte[]> ReadAllBytesAsync(FileResult file)
     {
         await using var stream = await file.OpenReadAsync();
@@ -256,10 +287,8 @@ public partial class AddBook : ContentPage
     }
 
     /// <summary>
-    /// Construit un <see cref="Models.Book"/> depuis des bytes EPUB.
-    /// - Lit l'EPUB pour estimer un PageCount (heuristique)
-    /// - Applique un tag DB si présent
-    /// - Applique la progression de lecture si fournie
+    /// Construit un Book depuis des bytes EPUB.
+    /// Parsing + estimation pages sont exécutés hors UI thread pour garder l'animation du loading fluide.
     /// </summary>
     private static async Task<Models.Book> CreateImportedBookFromEpubAsync(
         byte[] epubBytes,
@@ -267,16 +296,17 @@ public partial class AddBook : ContentPage
         string? tagFromDb,
         int lastPageReadFromDb)
     {
-        // Lire l'EPUB
-        EpubBook epubBook;
-        using (var epubStream = new MemoryStream(epubBytes))
+        // Parse + count pages en background
+        var parsed = await Task.Run(() =>
         {
-            epubBook = EpubReader.ReadBook(epubStream);
-        }
+            using var epubStream = new MemoryStream(epubBytes);
+            EpubBook epubBook = EpubReader.ReadBook(epubStream);
 
-        int pageCount = EstimateEpubPages(epubBook);
+            int pageCount = EstimateEpubPages(epubBook);
+            return (epubBook, pageCount);
+        });
 
-        // Métadonnées (simple pour l'instant)
+        // Métadonnées (placeholder simple)
         var (title, author, coverBytes) = await ExtractEpubMetadataAsync(epubBytes, fallbackFileName);
 
         var book = new Models.Book(
@@ -286,10 +316,9 @@ public partial class AddBook : ContentPage
             coverImage: coverBytes
         );
 
-        book.PageCount = pageCount;
+        book.PageCount = parsed.pageCount;
         book.LastPageRead = Math.Max(0, lastPageReadFromDb);
 
-        // Tag DB (ta table a 1 champ texte)
         if (!string.IsNullOrWhiteSpace(tagFromDb))
             book.Tags.Add(new Models.Tag(tagFromDb.Trim()));
 
@@ -297,15 +326,11 @@ public partial class AddBook : ContentPage
     }
 
     /// <summary>
-    /// Estimation simple des pages : on convertit chaque section XHTML en texte
-    /// puis on applique une heuristique (mots/page).
+    /// Estimation pages : conversion des sections XHTML en texte + heuristique mots/page.
     /// </summary>
     private static int EstimateEpubPages(EpubBook epubBook)
     {
-        // Page 1 = cover / page de garde
-        int total = 1;
-
-        // Heuristique : ~280-320 mots par page "livre" sur mobile
+        int total = 1; // cover
         const int wordsPerPage = 300;
 
         foreach (var xhtml in epubBook.ReadingOrder)
@@ -316,7 +341,6 @@ public partial class AddBook : ContentPage
             string text = StripHtmlToText(xhtml.Content);
             int words = CountWords(text);
 
-            // au minimum 1 page par section
             int pages = Math.Max(1, (int)Math.Ceiling(words / (double)wordsPerPage));
             total += pages;
         }
@@ -324,9 +348,7 @@ public partial class AddBook : ContentPage
         return Math.Max(1, total);
     }
 
-    /// <summary>
-    /// Nettoyage HTML -> texte brut pour compter des mots.
-    /// </summary>
+    /// <summary>Nettoyage HTML -> texte brut.</summary>
     private static string StripHtmlToText(string html)
     {
         html = Regex.Replace(html, "<script.*?</script>", "", RegexOptions.Singleline | RegexOptions.IgnoreCase);
@@ -336,9 +358,7 @@ public partial class AddBook : ContentPage
         return Regex.Replace(html, "\\s+", " ").Trim();
     }
 
-    /// <summary>
-    /// Compte des mots = séquences lettres/chiffres Unicode.
-    /// </summary>
+    /// <summary>Compte des mots (lettres/chiffres Unicode).</summary>
     private static int CountWords(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -348,14 +368,14 @@ public partial class AddBook : ContentPage
     }
 
     /// <summary>
-    /// Extraction minimale (placeholder) : tu pourras ensuite lire Title/Author/Cover depuis epubBook.Metadata.
+    /// Extraction minimale (placeholder) : pour l'instant on se base sur le nom du fichier.
+    /// (Tu pourras améliorer via epubBook.Metadata + cover).
     /// </summary>
     private static Task<(string title, string author, byte[] cover)> ExtractEpubMetadataAsync(byte[] epubBytes, string fileName)
     {
         string title = Path.GetFileNameWithoutExtension(fileName);
         string author = "Auteur inconnu";
         byte[] cover = Array.Empty<byte>();
-
         return Task.FromResult((title, author, cover));
     }
 }

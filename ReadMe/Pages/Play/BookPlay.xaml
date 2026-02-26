@@ -12,43 +12,82 @@
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
 
+            <!-- Bouton retour -->
             <ImageButton
                 Source="backarrow.png"
-                HeightRequest="80"
-                WidthRequest="80"
+                HeightRequest="70"
+                WidthRequest="70"
                 Margin="15,0"
                 HorizontalOptions="Start"
                 VerticalOptions="Center"
                 Clicked="OnBackClicked" />
 
-            <!-- Indicateur pages -->
-            <Frame
-                Padding="10,6"
-                CornerRadius="12"
-                BackgroundColor="#AA000000"
-                BorderColor="#22FFFFFF"
-                HasShadow="False"
+            <!-- Bouton page précédente -->
+            <ImageButton         
+                BackgroundColor="Red"
+                HeightRequest="50"
+                WidthRequest="50"
+                Margin="100,0,0,0"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnPrevPageClicked" />
+
+            <!-- Bouton page suivante -->
+            <ImageButton
+                BackgroundColor="ForestGreen"
+                HeightRequest="50"
+                WidthRequest="50"
+                Margin="160,0,0,0"
+                HorizontalOptions="Start"
+                VerticalOptions="Center"
+                Clicked="OnNextPageClicked" />
+
+            <!-- Badge pages -->
+            <Grid
                 HorizontalOptions="End"
                 VerticalOptions="Center"
                 Margin="0,0,16,0">
 
-                <Label
-                    x:Name="PageIndicator"
-                    Text="1/1"
-                    TextColor="White"
-                    FontSize="14"
-                    FontAttributes="Bold" />
-            </Frame>
+                <Image
+                    Source="bgpages.jpg"
+                    Aspect="AspectFill"
+                    Opacity="0.40"
+                    HeightRequest="34"
+                    WidthRequest="78" />
+
+                <Border
+                    HeightRequest="34"
+                    WidthRequest="78"
+                    Stroke="#22FFFFFF"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12">
+
+                    <Border.Background>
+                        <SolidColorBrush Color="#AA000000" />
+                    </Border.Background>
+
+                    <Grid Padding="10,6">
+                        <Label
+                            x:Name="PageIndicatorLabel"
+                            Text="1/1"
+                            TextColor="White"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- READER -->
         <Grid Grid.Row="1" x:Name="PageContainer" Padding="18" BackgroundColor="#0B0B0B">
 
-            <!-- Texture optionnelle -->
+            <!-- Texture de fond (page) -->
             <Image
                 Source="bgpages.jpg"
                 Aspect="AspectFill"
-                Opacity="0.25"
+                Opacity="1"
                 InputTransparent="True" />
 
             <!-- Carte -->
@@ -65,7 +104,7 @@
                     VerticalOptions="Fill" />
             </Frame>
 
-            <!-- WebView caché (IMPORTANT pour calculer le vrai nombre de pages) -->
+            <!-- WebView caché -->
             <WebView
                 x:Name="MeasureWebView"
                 IsVisible="False"
@@ -76,10 +115,9 @@
 
             <!-- Gestures -->
             <Grid.GestureRecognizers>
-                <SwipeGestureRecognizer Direction="Left"  Swiped="OnSwipeLeft" />
+                <SwipeGestureRecognizer Direction="Left" Swiped="OnSwipeLeft" />
                 <SwipeGestureRecognizer Direction="Right" Swiped="OnSwipeRight" />
-            </Grid.GestureRecognizers>
-
+            </Grid.GestureRecognizers>               
         </Grid>
     </Grid>
 </ContentPage>
