@@ -83,25 +83,32 @@
         <!-- READER -->
         <Grid Grid.Row="1" x:Name="PageContainer" Padding="18" BackgroundColor="#0B0B0B">
 
-            <!-- Texture de fond (page) -->
-            <Image
-                Source="bgpages.jpg"
-                Aspect="AspectFill"
-                Opacity="1"
-                InputTransparent="True" />
 
             <!-- Carte -->
             <Frame
-                x:Name="ReaderFrame"
-                BackgroundColor="#F6F1E7"
-                CornerRadius="18"
-                Padding="0"
-                HasShadow="True">
+    x:Name="ReaderFrame"
+    BackgroundColor="Transparent"
+    CornerRadius="18"
+    Padding="0"
+    HasShadow="True">
 
-                <ContentView
-                    x:Name="PageContent"
-                    HorizontalOptions="Fill"
-                    VerticalOptions="Fill" />
+                <!-- IMPORTANT: un Grid pour avoir image de fond + contenu par-dessus -->
+                <Grid>
+
+                    <!-- Background de la carte -->
+                    <Image
+            Source="bgpages.jpg"
+            Aspect="AspectFill"
+            Opacity="0.6"
+            InputTransparent="True" />
+
+                    <!-- Contenu (WebView / cover / etc.) -->
+                    <ContentView
+            x:Name="PageContent"
+            HorizontalOptions="Fill"
+            VerticalOptions="Fill"
+                        Opacity="0.7"/>
+                </Grid>
             </Frame>
 
             <!-- WebView caché -->
