@@ -6,45 +6,76 @@ using System.Windows.Input;
 
 namespace ReadMe.Pages.Tag;
 
+/// <summary>
+/// Page "AddTag" : permet d'assigner plusieurs tags à un livre via une checklist.
+/// UX:
+/// - recherche par texte
+/// - filtres par catégorie (heuristique basée sur le nom du tag)
+/// - actions "tout cocher / tout décocher" appliquées à la liste filtrée (ce que l'utilisateur voit)
+/// - validation: ajoute les tags cochés au livre sans doublons
+/// </summary>
 public partial class AddTag : ContentPage, INotifyPropertyChanged
 {
     private readonly Models.Book _book;
     private readonly TagService _tagService;
 
-    // Liste "source" (tous les tags, avec état coché)
+    /// <summary>
+    /// Liste complète (source) : tous les tags existants avec l'état "coché".
+    /// On ne bind PAS directement l'UI dessus, car l'utilisateur filtre/recherche.
+    /// </summary>
     public ObservableCollection<TagChoice> AvailableTags { get; } = [];
 
-    // Liste affichée (filtrée)
+    /// <summary>
+    /// Liste affichée dans l'UI : sous-ensemble filtré (catégorie + recherche).
+    /// </summary>
     public ObservableCollection<TagChoice> FilteredTags { get; } = [];
 
-    // --- Recherche / Catégories ---
-    private string _searchText = "";
+    // ----------------------------
+    // Recherche / Catégorie
+    // ----------------------------
+
+    private string _searchText = string.Empty;
+
+    /// <summary>
+    /// Texte de recherche saisi par l'utilisateur.
+    /// A chaque modification, on recalculte la liste FilteredTags.
+    /// </summary>
     public string SearchText
     {
         get => _searchText;
         set
         {
+            value ??= string.Empty;
             if (_searchText == value) return;
-            _searchText = value ?? "";
+
+            _searchText = value;
             OnPropertyChanged();
             ApplyFilters();
         }
     }
 
     private TagCategory _selectedCategory = TagCategory.All;
+
+    /// <summary>
+    /// Catégorie active (onglet / filtre).
+    /// </summary>
     public TagCategory SelectedCategory
     {
         get => _selectedCategory;
         set
         {
             if (_selectedCategory == value) return;
+
             _selectedCategory = value;
             OnPropertyChanged();
             ApplyFilters();
         }
     }
 
-    // --- Commands pour le XAML ---
+    // ----------------------------
+    // Commands (utilisés dans le XAML)
+    // ----------------------------
+
     public ICommand SetCategoryCommand { get; }
     public ICommand CheckAllCommand { get; }
     public ICommand UncheckAllCommand { get; }
@@ -56,32 +87,27 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
         _book = book;
         _tagService = tagService;
 
-        SetCategoryCommand = new Command<string>(cat =>
-        {
-            SelectedCategory = ParseCategory(cat);
-        });
+        // Change la catégorie depuis un string ("imperium", "xenos", etc.)
+        SetCategoryCommand = new Command<string>(cat => SelectedCategory = ParseCategory(cat));
 
-        // ces actions s’appliquent à la liste filtrée (ce que l’utilisateur voit)
-        CheckAllCommand = new Command(() =>
-        {
-            foreach (var item in FilteredTags)
-                item.IsSelected = true;
-        });
+        // "Tout cocher / décocher" : appliqué uniquement à la liste affichée.
+        CheckAllCommand = new Command(() => SetSelectionOnFiltered(true));
+        UncheckAllCommand = new Command(() => SetSelectionOnFiltered(false));
 
-        UncheckAllCommand = new Command(() =>
-        {
-            foreach (var item in FilteredTags)
-                item.IsSelected = false;
-        });
-
+        // Prépare la source + applique le filtrage initial
         BuildChecklist();
         ApplyFilters();
 
         BindingContext = this;
     }
 
+    // ----------------------------
+    // Data build / Filtering
+    // ----------------------------
+
     /// <summary>
-    /// Construit AvailableTags depuis TagService et pré-coche ceux déjà sur le livre.
+    /// Construit la liste source (AvailableTags) à partir du TagService.
+    /// Pré-coche les tags déjà présents sur le livre.
     /// </summary>
     private void BuildChecklist()
     {
@@ -94,7 +120,7 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
 
         foreach (var tag in _tagService.GetAll())
         {
-            var name = (tag.Name ?? "").Trim();
+            string name = (tag.Name ?? "").Trim();
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
@@ -106,33 +132,44 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Filtre par texte + catégorie.
+    /// Recalcule FilteredTags depuis AvailableTags selon:
+    /// - catégorie
+    /// - texte de recherche
     /// </summary>
     private void ApplyFilters()
     {
-        string q = (SearchText ?? "").Trim();
+        string queryText = (SearchText ?? "").Trim();
 
         IEnumerable<TagChoice> query = AvailableTags;
 
-        // Catégorie
         if (SelectedCategory != TagCategory.All)
-            query = query.Where(t => GetCategory(t) == SelectedCategory);
+            query = query.Where(t => GetCategoryFromName(t.Name) == SelectedCategory);
 
-        // Recherche
-        if (!string.IsNullOrWhiteSpace(q))
-        {
-            query = query.Where(t =>
-                t.Name.Contains(q, StringComparison.OrdinalIgnoreCase));
-        }
+        if (!string.IsNullOrWhiteSpace(queryText))
+            query = query.Where(t => t.Name.Contains(queryText, StringComparison.OrdinalIgnoreCase));
 
-        // Rebuild collection (simple et fiable)
         FilteredTags.Clear();
         foreach (var item in query.OrderBy(t => t.Name))
             FilteredTags.Add(item);
     }
 
     /// <summary>
-    /// Ajoute tous les tags cochés au livre (sans doublons), puis revient en arrière.
+    /// Coche/décoche tous les éléments actuellement visibles (FilteredTags).
+    /// </summary>
+    private void SetSelectionOnFiltered(bool selected)
+    {
+        foreach (var item in FilteredTags)
+            item.IsSelected = selected;
+    }
+
+    // ----------------------------
+    // Actions UI
+    // ----------------------------
+
+    /// <summary>
+    /// Ajoute au livre tous les tags cochés (sans doublons).
+    /// Important: on parcourt AvailableTags (la source) pour ne pas perdre
+    /// des sélections si l'utilisateur change les filtres avant de valider.
     /// </summary>
     private async void OnAddTagsClicked(object sender, EventArgs e)
     {
@@ -143,16 +180,12 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
 
         int added = 0;
 
-        // On parcourt AvailableTags (pas FilteredTags), pour prendre en compte
-        // les choix même si l'utilisateur change les filtres.
         foreach (var choice in AvailableTags)
         {
-            if (!choice.IsSelected)
-                continue;
+            if (!choice.IsSelected) continue;
 
             string name = (choice.Tag.Name ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(name))
-                continue;
+            if (string.IsNullOrWhiteSpace(name)) continue;
 
             if (existing.Add(name))
             {
@@ -180,7 +213,7 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
     }
 
     // ----------------------------
-    // Catégories (heuristiques)
+    // Catégories (heuristique)
     // ----------------------------
 
     public enum TagCategory
@@ -194,10 +227,10 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
         Themes
     }
 
-    private static TagCategory ParseCategory(string? cat)
+    private static TagCategory ParseCategory(string? value)
     {
-        cat = (cat ?? "").Trim();
-        return cat.ToLowerInvariant() switch
+        value = (value ?? "").Trim().ToLowerInvariant();
+        return value switch
         {
             "imperium" => TagCategory.Imperium,
             "spacemarines" => TagCategory.SpaceMarines,
@@ -205,20 +238,19 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
             "chaos" => TagCategory.Chaos,
             "xenos" => TagCategory.Xenos,
             "themes" => TagCategory.Themes,
-            "all" => TagCategory.All,
             _ => TagCategory.All
         };
     }
 
     /// <summary>
-    /// Devine une catégorie selon le nom du tag.
-    /// Comme ton Tag n'a pas de "Category", on fait une heuristique stable.
+    /// Déduit une catégorie à partir du texte du tag.
+    /// (Ton modèle Tag n'a pas de champ "Category".)
     /// </summary>
-    private static TagCategory GetCategory(TagChoice t)
+    private static TagCategory GetCategoryFromName(string? tagName)
     {
-        string n = (t.Name ?? "").Trim().ToLowerInvariant();
+        string n = (tagName ?? "").Trim().ToLowerInvariant();
 
-        // AdMech
+        // Adeptus Mechanicus
         if (n.Contains("adeptus mechanicus") || n.Contains("admech") || n.Contains("mechanicus") || n.Contains("skitarii"))
             return TagCategory.AdMech;
 
@@ -230,7 +262,7 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
             n.Contains("deathwatch") || n.Contains("grey knights"))
             return TagCategory.SpaceMarines;
 
-        // Imperium (hors SM/AdMech)
+        // Imperium (hors SM / AdMech)
         if (n.Contains("imperium") || n.Contains("imperial") || n.Contains("astra militarum") || n.Contains("guard") ||
             n.Contains("adepta sororitas") || n.Contains("sororitas") || n.Contains("sisters of battle") ||
             n.Contains("custodes") || n.Contains("inquisition") || n.Contains("knights") ||
@@ -252,7 +284,6 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
             n.Contains("tyranid") || n.Contains("genestealer") || n.Contains("votann"))
             return TagCategory.Xenos;
 
-        // Thèmes / général
         return TagCategory.Themes;
     }
 
@@ -266,9 +297,14 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
     // ----------------------------
-    // Checklist item (notifie UI)
+    // Checklist Item
     // ----------------------------
 
+    /// <summary>
+    /// Représente une ligne de checklist:
+    /// - Tag d'origine
+    /// - bool IsSelected qui notifie l'UI quand il change
+    /// </summary>
     public sealed class TagChoice : INotifyPropertyChanged
     {
         public Models.Tag Tag { get; }
@@ -276,6 +312,7 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
         public string Name => Tag.Name;
 
         private bool _isSelected;
+
         public bool IsSelected
         {
             get => _isSelected;
@@ -287,10 +324,7 @@ public partial class AddTag : ContentPage, INotifyPropertyChanged
             }
         }
 
-        public TagChoice(Models.Tag tag)
-        {
-            Tag = tag;
-        }
+        public TagChoice(Models.Tag tag) => Tag = tag;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
