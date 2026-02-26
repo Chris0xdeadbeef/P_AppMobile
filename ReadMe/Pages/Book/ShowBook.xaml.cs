@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using ReadMe.Pages.Tag;
 using ReadMe.Services;
 
@@ -6,45 +7,55 @@ namespace ReadMe.Pages.Book;
 public partial class ShowBook : ContentPage
 {
     private readonly BookService _bookService;
+    private readonly TagService _tagService;
     private readonly AddBook _addBook;
-    private readonly AddTag _addTag;
 
-    public ShowBook(BookService bookService, AddBook addBook, AddTag addTag)
+    public ShowBook(BookService bookService, TagService tagService, AddBook addBook)
     {
         InitializeComponent();
 
         _bookService = bookService;
+        _tagService = tagService;
         _addBook = addBook;
-        _addTag = addTag;
 
-        // Définit la source de données pour la CollectionView
-        BindingContext = new
-        {
-            Books = _bookService.GetAllBooks()
-        };
+        // BindingContext = ViewModel simple (anonyme) avec une Command
+        BindingContext = new ShowBookVm(
+            books: _bookService.GetAllBooks(),
+            openTagPage: async book =>
+            {
+                if (book == null) return;
+                await Navigation.PushAsync(new AddTag(book, _tagService));
+            }
+        );
     }
 
-    /// <summary>
-    /// Retourne à la page menu
-    /// </summary>
     private async void OnBackClicked(object sender, EventArgs e)
     {
         await Navigation.PopToRootAsync();
     }
 
-    /// <summary>
-    /// Ouvre la page permettant d’ajouter un nouveau livre.
-    /// </summary>
     private async void OnClickedAddBook(object sender, EventArgs e)
     {
         await Navigation.PushAsync(_addBook);
     }
 
     /// <summary>
-    /// Ouvre la page permettant d’ajouter un tag à un livre.
+    /// Mini-VM pour éviter les hacks de SelectedItem et capter un vrai Tap sur toute la carte.
     /// </summary>
-    private async void OnClickedTag(object sender, EventArgs e)
+    private sealed class ShowBookVm
     {
-        await Navigation.PushAsync(_addTag);
+        public object Books { get; }
+        public ICommand OpenTagPageCommand { get; }
+
+        public ShowBookVm(object books, Func<Models.Book?, Task> openTagPage)
+        {
+            Books = books;
+
+            OpenTagPageCommand = new Command<Models.Book>(async (b) =>
+            {
+                try { await openTagPage(b); }
+                catch { /* on évite de casser l'UI */ }
+            });
+        }
     }
 }

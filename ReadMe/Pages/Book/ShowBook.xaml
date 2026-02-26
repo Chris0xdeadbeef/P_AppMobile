@@ -12,9 +12,9 @@
             <BoxView Color="Black" />
 
             <Image Source="banner1.png"
-                    Aspect="AspectFit"
-                    HeightRequest="100"
-                    Margin="30,0,0,0"/>
+                   Aspect="AspectFit"
+                   HeightRequest="100"
+                   Margin="30,0,0,0"/>
 
             <Image Source="candle.gif"
                    Aspect="AspectFit"
@@ -49,7 +49,7 @@
                    Opacity="0.7"
                    InputTransparent="True"/>
 
-            <!-- Degrade haut -->
+            <!-- Dégradé haut -->
             <BoxView HeightRequest="100"
                      VerticalOptions="Start"
                      InputTransparent="True">
@@ -76,80 +76,87 @@
                        FontFamily="OrbitronBold"
                        HorizontalTextAlignment="Center"/>
 
-                <HorizontalStackLayout Grid.Row="1"
-                       HorizontalOptions="Center"
-                       Spacing="20"
-                       Margin="0,20,0,0">
-
-                    <!-- Bouton + -->
-                    <Button
+                <!-- Bouton + centré -->
+                <Button Grid.Row="1"
                         x:Name="DeckAddBtn"
                         Text="+"
                         Clicked="OnClickedAddBook"
                         BackgroundColor="#2A2A2A"
                         TextColor="#FFD700"
                         FontSize="20"
+                        Margin="0,20,0,0"
                         HeightRequest="50"
                         WidthRequest="50"
                         CornerRadius="80"
                         BorderColor="#FFD700"
                         BorderWidth="3"
+                        HorizontalOptions="Center"
                         Opacity="0.8"/>
-
-                    <!-- Bouton Tag -->
-                    <ImageButton
-                        Source="tag.png"
-                        HeightRequest="80"
-                        WidthRequest="100"
-                        Aspect="AspectFit"
-                        Clicked="OnClickedTag"/>
-                </HorizontalStackLayout>
 
                 <!-- Liste -->
                 <CollectionView Grid.Row="2"
                                 ItemsSource="{Binding Books}"
-                                SelectionMode="Single"
+                                SelectionMode="None"
                                 Margin="0,20,0,0">
 
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Frame Padding="15"
-                                   Margin="0,10"
-                                   BackgroundColor="#1A1A1A"
-                                   BorderColor="#FFD700"
-                                   CornerRadius="12">
+                            <!-- Grid wrapper: prend toute la largeur et capte le tap -->
+                            <Grid HorizontalOptions="Fill"
+                                  VerticalOptions="Fill"
+                                  Padding="0">
 
-                                <VerticalStackLayout Spacing="6">
+                                <Frame Padding="15"
+                                       Margin="0,10"
+                                       BackgroundColor="#1A1A1A"
+                                       BorderColor="#FFD700"
+                                       CornerRadius="12"
+                                       HasShadow="False"
+                                       HorizontalOptions="FillAndExpand"
+                                       VerticalOptions="FillAndExpand">
 
-                                    <Label Text="{Binding Title}"
-                                           FontSize="20"
-                                           FontAttributes="Bold"
-                                           TextColor="#FFD700" />
+                                    <!-- Tap sur toute la carte -->
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenTagPageCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Frame.GestureRecognizers>
 
-                                    <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
-                                           FontSize="16"
-                                           TextColor="White" />
+                                    <VerticalStackLayout Spacing="6">
 
-                                    <FlexLayout Wrap="Wrap"
-                                                Direction="Row"
-                                                BindableLayout.ItemsSource="{Binding Tags}">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate>
-                                                <Frame Padding="6,2"
-                                                       Margin="4"
-                                                       BackgroundColor="#333333"
-                                                       CornerRadius="8">
-                                                    <Label Text="{Binding Name}"
-                                                           TextColor="#FFD700"
-                                                           FontSize="14"/>
-                                                </Frame>
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </FlexLayout>
-                                </VerticalStackLayout>
-                            </Frame>
+                                        <Label Text="{Binding Title}"
+                                               FontSize="20"
+                                               FontAttributes="Bold"
+                                               TextColor="#FFD700" />
+
+                                        <Label Text="{Binding PageCount, StringFormat='{0} pages'}"
+                                               FontSize="16"
+                                               TextColor="White" />
+
+                                        <FlexLayout Wrap="Wrap"
+                                                    Direction="Row"
+                                                    BindableLayout.ItemsSource="{Binding Tags}">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Frame Padding="6,2"
+                                                           Margin="4"
+                                                           BackgroundColor="#333333"
+                                                           CornerRadius="8"
+                                                           HasShadow="False">
+                                                        <Label Text="{Binding Name}"
+                                                               TextColor="#FFD700"
+                                                               FontSize="14"/>
+                                                    </Frame>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </FlexLayout>
+
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </Grid>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
+
                 </CollectionView>
             </Grid>
         </Grid>
