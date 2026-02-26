@@ -4,20 +4,18 @@
              x:Class="ReadMe.Pages.Tag.AddTag"
              Title="AddTag"
              NavigationPage.HasNavigationBar="False">
-    
+
     <Grid RowDefinitions="80,*">
 
-        <!-- nav custom -->
+        <!-- NAV -->
         <Grid Grid.Row="0" HeightRequest="80">
             <BoxView Color="Black" />
-            <Image Source="playnav.png" Aspect="AspectFit" HeightRequest="60" HorizontalOptions="End"/>
 
-            <Label 
-                TextColor="#FFD700"
-                FontSize="24"
-                FontAttributes="Bold"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"/>
+            <Image Source="playnav.png"
+                   Aspect="AspectFit"
+                   HeightRequest="60"
+                   HorizontalOptions="End"
+                   Margin="0,0,10,0" />
 
             <ImageButton
                 Source="backarrow.png"
@@ -26,7 +24,159 @@
                 Margin="15,0"
                 HorizontalOptions="Start"
                 VerticalOptions="Center"
-                Clicked="OnBackClicked"/>
+                Clicked="OnBackClicked" />
+        </Grid>
+
+        <!-- CONTENU -->
+        <Grid Grid.Row="1">
+
+            <!-- Background -->
+            <BoxView Color="Black" InputTransparent="True"/>
+            <Image Source="tagbg.jpg"
+                   Aspect="AspectFill"
+                   Opacity="0.75"
+                   InputTransparent="True"/>
+
+            <!-- Dégradé haut -->
+            <BoxView HeightRequest="140"
+                     VerticalOptions="Start"
+                     InputTransparent="True">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF000000" Offset="0.0" />
+                        <GradientStop Color="#00000000" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+            <!-- Layout principal -->
+            <Grid Padding="18"
+                  RowDefinitions="Auto,Auto,Auto,*"
+                  RowSpacing="12">
+
+                <!-- Titre -->
+                <Label Grid.Row="0"
+                       Text="Rite d’Assignation des Sigils"
+                       TextColor="#FFD700"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       FontFamily="OrbitronBold"
+                       Margin="0,10,0,0" />
+
+                <!-- Search -->
+                <SearchBar Grid.Row="1"
+                           Placeholder="Scanner les Sigils… (ex: Necrons, Chaos, AdMech)"
+                           Text="{Binding SearchText}"
+                           BackgroundColor="#22000000"
+                           TextColor="White"
+                           PlaceholderColor="#88FFFFFF"
+                           CancelButtonColor="#FFD700" />
+
+                <!-- Catégories -->
+                <ScrollView Grid.Row="2" Orientation="Horizontal">
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Tous"        Command="{Binding SetCategoryCommand}" CommandParameter="All"     Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="Imperium"    Command="{Binding SetCategoryCommand}" CommandParameter="Imperium" Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="Space Marines" Command="{Binding SetCategoryCommand}" CommandParameter="SpaceMarines" Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="AdMech"      Command="{Binding SetCategoryCommand}" CommandParameter="AdMech" Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="Chaos"       Command="{Binding SetCategoryCommand}" CommandParameter="Chaos"  Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="Xenos"       Command="{Binding SetCategoryCommand}" CommandParameter="Xenos"  Style="{StaticResource CatBtnStyle}" />
+                        <Button Text="Thèmes"      Command="{Binding SetCategoryCommand}" CommandParameter="Themes" Style="{StaticResource CatBtnStyle}" />
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- Carte -->
+                <Frame Grid.Row="3"
+                       Padding="18"
+                       CornerRadius="18"
+                       HasShadow="True"
+                       BorderColor="#FFD700"
+                       BackgroundColor="#AA000000">
+
+                    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+
+                        <!-- Actions rapides -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,*"
+                              ColumnSpacing="10">
+                            <Button Grid.Column="0"
+                                    Text="Tout cocher"
+                                    Command="{Binding CheckAllCommand}"
+                                    BackgroundColor="#2A2A2A"
+                                    TextColor="#FFD700"
+                                    CornerRadius="10"
+                                    BorderColor="#FFD700"
+                                    BorderWidth="1"
+                                    HeightRequest="44" />
+
+                            <Button Grid.Column="1"
+                                    Text="Tout décocher"
+                                    Command="{Binding UncheckAllCommand}"
+                                    BackgroundColor="#2A2A2A"
+                                    TextColor="#FFD700"
+                                    CornerRadius="10"
+                                    BorderColor="#FFD700"
+                                    BorderWidth="1"
+                                    HeightRequest="44" />
+                        </Grid>
+
+                        <!-- Checklist filtrée -->
+                        <CollectionView Grid.Row="1"
+                                        ItemsSource="{Binding FilteredTags}"
+                                        SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          Padding="10,10"
+                                          Margin="0,6"
+                                          BackgroundColor="#22000000">
+
+                                        <CheckBox Grid.Column="0"
+                                                  IsChecked="{Binding IsSelected}"
+                                                  VerticalOptions="Center" />
+
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Name}"
+                                               TextColor="White"
+                                               FontSize="16"
+                                               VerticalOptions="Center"
+                                               Margin="12,0,0,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Bouton Ajouter -->
+                        <Button Grid.Row="2"
+                                Text="Graver dans le Cogitator"
+                                Clicked="OnAddTagsClicked"
+                                BackgroundColor="#3A0000"
+                                TextColor="#FFD700"
+                                FontSize="18"
+                                HeightRequest="56"
+                                CornerRadius="10"
+                                BorderColor="#FFD700"
+                                BorderWidth="2"
+                                Opacity="0.9"/>
+                    </Grid>
+                </Frame>
+            </Grid>
         </Grid>
     </Grid>
+
+    <!-- Styles locaux -->
+    <ContentPage.Resources>
+        <Style x:Key="CatBtnStyle" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="#2A2A2A" />
+            <Setter Property="TextColor" Value="#FFD700" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="BorderColor" Value="#FFD700" />
+            <Setter Property="BorderWidth" Value="1" />
+            <Setter Property="HeightRequest" Value="38" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Opacity" Value="0.9" />
+        </Style>
+    </ContentPage.Resources>
 </ContentPage>

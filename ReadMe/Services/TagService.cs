@@ -7,7 +7,7 @@ namespace ReadMe.Services
     /// Service responsable de la gestion des tags.
     /// Contient les tags par défaut et permet d'en ajouter de nouveaux.
     /// </summary>
-    internal class TagService
+    public class TagService
     {
         /// <summary>
         /// Liste observable contenant tous les tags de l'application.
@@ -22,12 +22,83 @@ namespace ReadMe.Services
         {
             _tags =
             [
+                // Univers général
                 new("Warhammer 40K"),
-                new("Space Marines"),
-                new("Adeptus Mechanicus"),
+                new("41e Millénaire"),
+                new("Grimdark"),
+                new("Hérésie d’Horus"),
+                new("Croisade Indomitus"),
+
+                // Imperium
                 new("Imperium"),
+                new("Adeptus Terra"),
+                new("Inquisition"),
+                new("Ecclésiarchie"),
+                new("Adeptus Custodes"),
+                new("Astra Militarum"),
+                new("Sœurs de Bataille"),
+                new("Chevaliers Impériaux"),
+
+                // Space Marines
+                new("Space Marines"),
+                new("Ultramarines"),
+                new("Blood Angels"),
+                new("Dark Angels"),
+                new("Space Wolves"),
+                new("Black Templars"),
+                new("Salamanders"),
+                new("Iron Hands"),
+                new("Raven Guard"),
+                new("Deathwatch"),
+                new("Grey Knights"),
+
+                // Adeptus Mechanicus
+                new("Adeptus Mechanicus"),
+                new("Tech-Priests"),
+                new("Skitarii"),
+                new("Legio Cybernetica"),
+                new("Machine-Esprit"),
+                new("Omnimessie"),
+                new("Forge Worlds"),
+                new("Titan Legions"),
+
+                // Chaos
                 new("Chaos"),
+                new("Chaos Space Marines"),
+                new("Black Legion"),
+                new("World Eaters"),
+                new("Death Guard"),
+                new("Thousand Sons"),
+                new("Emperor’s Children"),
+                new("Démons du Chaos"),
+                new("Khorne"),
+                new("Tzeentch"),
+                new("Nurgle"),
+                new("Slaanesh"),
+
+                // Xenos
                 new("Xenos"),
+                new("Orks"),
+                new("Eldars"),
+                new("Drukhari"),
+                new("Harlequins"),
+                new("Tyranids"),
+                new("Genestealer Cults"),
+                new("Necrons"),
+                new("Dynasties Nécrons"),
+                new("T’au"),
+                new("Leagues of Votann"),
+
+                // Thèmes narratifs
+                new("Guerre"),
+                new("Croisade"),
+                new("Hérésie"),
+                new("Exterminatus"),
+                new("Relique Archéotech"),
+                new("Forteresse Monastère"),
+                new("Monde-Forge"),
+                new("Secteur Impérial"),
+                new("Conflit Planétaire")
             ];
         }
 
