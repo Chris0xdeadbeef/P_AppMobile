@@ -83,7 +83,6 @@
         <!-- READER -->
         <Grid Grid.Row="1" x:Name="PageContainer" Padding="18" BackgroundColor="#0B0B0B">
 
-
             <!-- Carte -->
             <Frame
                 x:Name="ReaderFrame"

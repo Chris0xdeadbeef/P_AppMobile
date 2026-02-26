@@ -76,22 +76,34 @@
                        FontFamily="OrbitronBold"
                        HorizontalTextAlignment="Center"/>
 
-                <!-- Bouton  -->
-                <Button Grid.Row="1"
+                <HorizontalStackLayout Grid.Row="1"
+                       HorizontalOptions="Center"
+                       Spacing="20"
+                       Margin="0,20,0,0">
+
+                    <!-- Bouton + -->
+                    <Button
                         x:Name="DeckAddBtn"
                         Text="+"
                         Clicked="OnClickedAddBook"
                         BackgroundColor="#2A2A2A"
                         TextColor="#FFD700"
                         FontSize="20"
-                        Margin="0,20,0,0"
                         HeightRequest="50"
                         WidthRequest="50"
                         CornerRadius="80"
                         BorderColor="#FFD700"
                         BorderWidth="3"
-                        HorizontalOptions="Center"
                         Opacity="0.8"/>
+
+                    <!-- Bouton Tag -->
+                    <ImageButton
+                        Source="tag.png"
+                        HeightRequest="80"
+                        WidthRequest="100"
+                        Aspect="AspectFit"
+                        Clicked="OnClickedTag"/>
+                </HorizontalStackLayout>
 
                 <!-- Liste -->
                 <CollectionView Grid.Row="2"
